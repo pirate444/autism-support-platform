@@ -36,7 +36,7 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', formData)
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, formData)
       
       // Store token and user data
       localStorage.setItem('token', response.data.token)
