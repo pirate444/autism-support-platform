@@ -33,12 +33,10 @@ exports.createStudent = async (req, res) => {
     }
 
     const student = new Student({ name, dateOfBirth, assignedUsers, ministryCode, createdBy: req.user.userId });
-    // If the creator is a parent, assign them to the student
-    if (req.user.role === 'parent') {
-      student.assignedUsers = student.assignedUsers || [];
-      if (!student.assignedUsers.map(id => id.toString()).includes(req.user.userId)) {
-        student.assignedUsers.push(req.user.userId);
-      }
+    // Automatically assign the creator to the student for all allowed roles
+    student.assignedUsers = student.assignedUsers || [];
+    if (!student.assignedUsers.map(id => id.toString()).includes(req.user.userId)) {
+      student.assignedUsers.push(req.user.userId);
     }
     await student.save();
     

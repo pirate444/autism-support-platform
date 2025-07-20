@@ -103,6 +103,7 @@ export default function StudentsPage() {
       )
       
       console.log('Students loaded:', response.data);
+      console.log('Number of students loaded:', response.data.length);
       setStudents(response.data)
     } catch (error: any) {
       console.error('Error loading students:', error)
@@ -187,18 +188,22 @@ export default function StudentsPage() {
     }
 
     try {
+      console.log('Creating student with data:', createForm)
       const response = await axios.post(
         'https://autism-support-platform-production.up.railway.app/api/students/',
         createForm,
         { headers: getAuthHeaders() }
       )
       
+      console.log('Student created successfully:', response.data)
       toast.success('Student created successfully!')
       setShowCreateForm(false)
       setCreateForm({ name: '', dateOfBirth: '', ministryCode: '' })
       // Reload students to show the new one
+      console.log('Reloading students list...')
       loadStudents()
     } catch (error: any) {
+      console.error('Error creating student:', error)
       const message = error.response?.data?.message || 'Failed to create student'
       toast.error(message)
     }
