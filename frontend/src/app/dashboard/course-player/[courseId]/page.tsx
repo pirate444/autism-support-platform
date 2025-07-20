@@ -50,7 +50,7 @@ export default function CoursePlayerPage() {
         // Fetch sections for the course
         const token = localStorage.getItem("token");
         const sectionRes = await axios.get(
-          `http://localhost:5000/api/course-sections/course/${courseId}`,
+          `https://autism-support-platform-production.up.railway.app/api/course-sections/course/${courseId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         const sectionsData = sectionRes.data;
@@ -58,7 +58,7 @@ export default function CoursePlayerPage() {
         const sectionsWithLessons = await Promise.all(
           sectionsData.map(async (section: any) => {
             const lessonRes = await axios.get(
-              `http://localhost:5000/api/course-lessons/section/${section._id}`,
+              `https://autism-support-platform-production.up.railway.app/api/course-lessons/section/${section._id}`,
               { headers: { Authorization: `Bearer ${token}` } }
             );
             return {
@@ -86,7 +86,7 @@ export default function CoursePlayerPage() {
       try {
         const token = localStorage.getItem("token");
         const res = await axios.get(
-          `http://localhost:5000/api/course-lessons/${selectedLessonId}`,
+          `https://autism-support-platform-production.up.railway.app/api/course-lessons/${selectedLessonId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setLessonDetail(res.data);
@@ -108,7 +108,7 @@ export default function CoursePlayerPage() {
       try {
         const token = localStorage.getItem("token");
         const res = await axios.get(
-          `http://localhost:5000/api/courses/${courseId}/progress`,
+          `https://autism-support-platform-production.up.railway.app/api/courses/${courseId}/progress`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setCourseProgress(res.data);
@@ -127,14 +127,14 @@ export default function CoursePlayerPage() {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `http://localhost:5000/api/courses/${courseId}/progress`,
+        `https://autism-support-platform-production.up.railway.app/api/courses/${courseId}/progress`,
         { lessonId: selectedLessonId, isCompleted: true },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       toast.success("Lesson marked as complete!");
       // Refresh progress
       const res = await axios.get(
-        `http://localhost:5000/api/courses/${courseId}/progress`,
+        `https://autism-support-platform-production.up.railway.app/api/courses/${courseId}/progress`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setCourseProgress(res.data);

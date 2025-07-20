@@ -1,8 +1,10 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import axios from 'axios'
 import toast from 'react-hot-toast'
+import { apiUrl } from '../../../utils/api'
 
 interface Notification {
   _id: string
@@ -45,20 +47,48 @@ export default function NotificationsPage() {
   const loadNotifications = async () => {
     try {
       setLoading(true)
+      const token = localStorage.getItem('token')
       const response = await axios.get(
-        'http://localhost:5000/api/notifications/my',
-        { headers: getAuthHeaders() }
+        apiUrl('/api/notifications/my'),
+        { headers: { Authorization: `Bearer ${token}` } }
       )
-      setNotifications(response.data.notifications || response.data)
-    } catch (error: any) {
+      
+      // Handle different response structures
+      let notificationsData = response.data
+      if (response.data && response.data.notifications) {
+        notificationsData = response.data.notifications
+      } else if (response.data && Array.isArray(response.data)) {
+        notificationsData = response.data
+      } else {
+        console.warn('Unexpected notifications API response structure:', response.data)
+        notificationsData = []
+      }
+      
+      // Ensure it's an array
+      if (!Array.isArray(notificationsData)) {
+        console.error('Notifications data is not an array:', notificationsData)
+        notificationsData = []
+      }
+      
+      setNotifications(notificationsData)
+    } catch (error) {
       console.error('Error loading notifications:', error)
       toast.error('Failed to load notifications')
+      setNotifications([])
     } finally {
       setLoading(false)
     }
   }
 
   const updateNotificationCount = () => {
+    // Safety check to ensure notifications is an array
+    if (!notifications || !Array.isArray(notifications)) {
+      window.dispatchEvent(new CustomEvent('updateNotificationCount', { 
+        detail: { count: 0 } 
+      }))
+      return
+    }
+    
     const unreadCount = notifications.filter(n => !n.isRead).length
     window.dispatchEvent(new CustomEvent('updateNotificationCount', { 
       detail: { count: unreadCount } 
@@ -75,12 +105,14 @@ export default function NotificationsPage() {
 
   const markAsRead = async (notificationId: string) => {
     try {
+      const token = localStorage.getItem('token')
       await axios.put(
-        `http://localhost:5000/api/notifications/${notificationId}/read`,
+        apiUrl(`/api/notifications/${notificationId}/read`),
         {},
-        { headers: getAuthHeaders() }
+        { headers: { Authorization: `Bearer ${token}` } }
       )
       
+      // Update local state
       setNotifications(prev => 
         prev.map(notification => 
           notification._id === notificationId 
@@ -88,7 +120,15 @@ export default function NotificationsPage() {
             : notification
         )
       )
-    } catch (error: any) {
+      
+      // Update unread count
+      const newUnreadCount = notifications && Array.isArray(notifications) 
+        ? notifications.filter(n => !n.isRead && n._id !== notificationId).length 
+        : 0
+      window.dispatchEvent(new CustomEvent('updateNotificationCount', { detail: { count: newUnreadCount } }))
+      
+      toast.success('Notification marked as read')
+    } catch (error) {
       console.error('Error marking notification as read:', error)
       toast.error('Failed to mark notification as read')
     }
@@ -96,17 +136,21 @@ export default function NotificationsPage() {
 
   const markAllAsRead = async () => {
     try {
+      const token = localStorage.getItem('token')
       await axios.put(
-        'http://localhost:5000/api/notifications/mark-all-read',
+        apiUrl('/api/notifications/mark-all-read'),
         {},
-        { headers: getAuthHeaders() }
+        { headers: { Authorization: `Bearer ${token}` } }
       )
       
-      setNotifications(prev => 
-        prev.map(notification => ({ ...notification, isRead: true }))
-      )
+      // Update local state
+      setNotifications(prev => prev.map(notification => ({ ...notification, isRead: true })))
+      
+      // Update unread count
+      window.dispatchEvent(new CustomEvent('updateNotificationCount', { detail: { count: 0 } }))
+      
       toast.success('All notifications marked as read')
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error marking all notifications as read:', error)
       toast.error('Failed to mark all notifications as read')
     }
@@ -114,16 +158,23 @@ export default function NotificationsPage() {
 
   const deleteNotification = async (notificationId: string) => {
     try {
+      const token = localStorage.getItem('token')
       await axios.delete(
-        `http://localhost:5000/api/notifications/${notificationId}`,
-        { headers: getAuthHeaders() }
+        apiUrl(`/api/notifications/${notificationId}`),
+        { headers: { Authorization: `Bearer ${token}` } }
       )
       
-      setNotifications(prev => 
-        prev.filter(notification => notification._id !== notificationId)
-      )
+      // Update local state
+      setNotifications(prev => prev.filter(notification => notification._id !== notificationId))
+      
+      // Update unread count
+      const newUnreadCount = notifications && Array.isArray(notifications) 
+        ? notifications.filter(n => !n.isRead && n._id !== notificationId).length 
+        : 0
+      window.dispatchEvent(new CustomEvent('updateNotificationCount', { detail: { count: newUnreadCount } }))
+      
       toast.success('Notification deleted')
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error deleting notification:', error)
       toast.error('Failed to delete notification')
     }
@@ -163,6 +214,11 @@ export default function NotificationsPage() {
     }
   }
 
+
+  if (!notifications || !Array.isArray(notifications)) {
+    return <div>Loading notifications...</div>
+  }
+  
   const filteredNotifications = notifications.filter(notification => {
     const matchesType = filterType === 'all' || notification.type === filterType
     const matchesReadStatus = showRead || !notification.isRead

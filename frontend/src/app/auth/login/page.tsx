@@ -13,6 +13,11 @@ export default function LoginPage() {
     password: ''
   })
   const [loading, setLoading] = useState(false)
+  console.log('Environment check:', {
+    apiUrl: process.env.NEXT_PUBLIC_API_URL,
+    nodeEnv: process.env.NODE_ENV,
+    allEnv: process.env
+  });
 
   // Clear any existing session data when login page loads
   useEffect(() => {
@@ -36,7 +41,7 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, formData)
+      const response = await axios.post('https://autism-support-platform-production.up.railway.app/api/auth/login', formData)
       
       // Store token and user data
       localStorage.setItem('token', response.data.token)

@@ -60,7 +60,7 @@ export default function CourseBuilderPage() {
     setLoading(true);
     setError("");
     const token = localStorage.getItem("token");
-    axios.get(`http://localhost:5000/api/courses/${courseId}`, { headers: { Authorization: `Bearer ${token}` } })
+    axios.get(`https://autism-support-platform-production.up.railway.app/api/courses/${courseId}`, { headers: { Authorization: `Bearer ${token}` } })
       .then(res => setCourse(res.data))
       .catch(err => {
         if (err.response) {
@@ -84,12 +84,12 @@ export default function CourseBuilderPage() {
   useEffect(() => {
     if (!courseId) return;
     const token = localStorage.getItem("token");
-    axios.get(`http://localhost:5000/api/course-sections/course/${courseId}`, { headers: { Authorization: `Bearer ${token}` } })
+    axios.get(`https://autism-support-platform-production.up.railway.app/api/course-sections/course/${courseId}`, { headers: { Authorization: `Bearer ${token}` } })
       .then(res => {
         setSections(res.data);
         // Fetch lessons for each section
         res.data.forEach(section => {
-          axios.get(`http://localhost:5000/api/course-lessons/section/${section._id}`, { headers: { Authorization: `Bearer ${token}` } })
+          axios.get(`https://autism-support-platform-production.up.railway.app/api/course-lessons/section/${section._id}`, { headers: { Authorization: `Bearer ${token}` } })
             .then(lesRes => setLessonsBySection(prev => ({ ...prev, [section._id]: lesRes.data })));
         });
       });
@@ -116,15 +116,15 @@ export default function CourseBuilderPage() {
     
     try {
       if (editingSectionId) {
-        await axios.put(`http://localhost:5000/api/course-sections/${editingSectionId}`, { ...sectionForm }, { headers: { Authorization: `Bearer ${token}` } });
+        await axios.put(`https://autism-support-platform-production.up.railway.app/api/course-sections/${editingSectionId}`, { ...sectionForm }, { headers: { Authorization: `Bearer ${token}` } });
       } else {
         console.log("Creating new section with data:", { ...sectionForm, courseId });
-        const response = await axios.post(`http://localhost:5000/api/course-sections/`, { ...sectionForm, courseId }, { headers: { Authorization: `Bearer ${token}` } });
+        const response = await axios.post(`https://autism-support-platform-production.up.railway.app/api/course-sections/`, { ...sectionForm, courseId }, { headers: { Authorization: `Bearer ${token}` } });
         console.log("Section created successfully:", response.data);
       }
       setShowSectionModal(false);
       // Refresh sections
-      const res = await axios.get(`http://localhost:5000/api/course-sections/course/${courseId}`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.get(`https://autism-support-platform-production.up.railway.app/api/course-sections/course/${courseId}`, { headers: { Authorization: `Bearer ${token}` } });
       setSections(res.data);
     } catch (error) {
       console.error("Error submitting section:", error);
@@ -139,9 +139,9 @@ export default function CourseBuilderPage() {
   const handleDeleteSection = async (sectionId) => {
     if (!window.confirm("Are you sure you want to delete this section? This will also delete all its lessons.")) return;
     const token = localStorage.getItem("token");
-    await axios.delete(`http://localhost:5000/api/course-sections/${sectionId}`, { headers: { Authorization: `Bearer ${token}` } });
+    await axios.delete(`https://autism-support-platform-production.up.railway.app/api/course-sections/${sectionId}`, { headers: { Authorization: `Bearer ${token}` } });
     // Refresh sections
-    const res = await axios.get(`http://localhost:5000/api/course-sections/course/${courseId}`, { headers: { Authorization: `Bearer ${token}` } });
+    const res = await axios.get(`https://autism-support-platform-production.up.railway.app/api/course-sections/course/${courseId}`, { headers: { Authorization: `Bearer ${token}` } });
     setSections(res.data);
   };
   const moveSection = async (sectionId, direction) => {
@@ -157,7 +157,7 @@ export default function CourseBuilderPage() {
     }
     // Update order in backend
     const token = localStorage.getItem("token");
-    await axios.put(`http://localhost:5000/api/course-sections/course/${courseId}/reorder`, { sectionOrders: newOrder.map((s, i) => ({ sectionId: s._id, order: i })) }, { headers: { Authorization: `Bearer ${token}` } });
+    await axios.put(`https://autism-support-platform-production.up.railway.app/api/course-sections/course/${courseId}/reorder`, { sectionOrders: newOrder.map((s, i) => ({ sectionId: s._id, order: i })) }, { headers: { Authorization: `Bearer ${token}` } });
     setSections(newOrder);
   };
 
@@ -198,7 +198,7 @@ export default function CourseBuilderPage() {
       const uploadForm = new FormData();
       uploadForm.append("file", lessonFile);
       const uploadRes = await axios.post(
-        "http://localhost:5000/api/course-lessons/upload/file",
+        "https://autism-support-platform-production.up.railway.app/api/course-lessons/upload/file",
         uploadForm,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -218,7 +218,7 @@ export default function CourseBuilderPage() {
         ]
       };
       await axios.post(
-        "http://localhost:5000/api/course-lessons/",
+        "https://autism-support-platform-production.up.railway.app/api/course-lessons/",
         lessonData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -238,23 +238,23 @@ export default function CourseBuilderPage() {
         config = { headers: { Authorization: `Bearer ${token}` } };
       }
       if (editingLessonId) {
-        await axios.put(`http://localhost:5000/api/course-lessons/${editingLessonId}`, dataToSend, config);
+        await axios.put(`https://autism-support-platform-production.up.railway.app/api/course-lessons/${editingLessonId}`, dataToSend, config);
       } else {
-        await axios.post(`http://localhost:5000/api/course-lessons/`, dataToSend, config);
+        await axios.post(`https://autism-support-platform-production.up.railway.app/api/course-lessons/`, dataToSend, config);
       }
     }
     setShowLessonModal(false);
     setLessonFile(null);
     // Refresh lessons for the section
-    const res = await axios.get(`http://localhost:5000/api/course-lessons/section/${lessonForm.sectionId}`, { headers: { Authorization: `Bearer ${token}` } });
+    const res = await axios.get(`https://autism-support-platform-production.up.railway.app/api/course-lessons/section/${lessonForm.sectionId}`, { headers: { Authorization: `Bearer ${token}` } });
     setLessonsBySection((prev) => ({ ...prev, [lessonForm.sectionId]: res.data }));
   };
   const handleDeleteLesson = async (lessonId, sectionId) => {
     if (!window.confirm("Are you sure you want to delete this lesson?")) return;
     const token = localStorage.getItem("token");
-    await axios.delete(`http://localhost:5000/api/course-lessons/${lessonId}`, { headers: { Authorization: `Bearer ${token}` } });
+    await axios.delete(`https://autism-support-platform-production.up.railway.app/api/course-lessons/${lessonId}`, { headers: { Authorization: `Bearer ${token}` } });
     // Refresh lessons for the section
-    const res = await axios.get(`http://localhost:5000/api/course-lessons/section/${sectionId}`, { headers: { Authorization: `Bearer ${token}` } });
+    const res = await axios.get(`https://autism-support-platform-production.up.railway.app/api/course-lessons/section/${sectionId}`, { headers: { Authorization: `Bearer ${token}` } });
     setLessonsBySection((prev) => ({ ...prev, [sectionId]: res.data }));
   };
   const moveLesson = async (sectionId, lessonId, direction) => {
@@ -271,7 +271,7 @@ export default function CourseBuilderPage() {
     }
     // Update order in backend
     const token = localStorage.getItem("token");
-    await axios.put(`http://localhost:5000/api/course-lessons/section/${sectionId}/reorder`, { lessonOrders: newOrder.map((l, i) => ({ lessonId: l._id, order: i })) }, { headers: { Authorization: `Bearer ${token}` } });
+    await axios.put(`https://autism-support-platform-production.up.railway.app/api/course-lessons/section/${sectionId}/reorder`, { lessonOrders: newOrder.map((l, i) => ({ lessonId: l._id, order: i })) }, { headers: { Authorization: `Bearer ${token}` } });
     setLessonsBySection((prev) => ({ ...prev, [sectionId]: newOrder }));
   };
 

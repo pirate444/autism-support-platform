@@ -6,6 +6,7 @@ import Link from 'next/link'
 import toast from 'react-hot-toast'
 import axios from 'axios'
 import NotificationBadge from '../../components/NotificationBadge'
+import { apiUrl } from '../../utils/api'
 
 interface User {
   id: string
@@ -66,7 +67,7 @@ export default function DashboardPage() {
     try {
       const token = localStorage.getItem('token')
       const response = await axios.get(
-        'http://localhost:5000/api/messages/unread/count',
+        apiUrl('/api/messages/unread/count'),
         { headers: { Authorization: `Bearer ${token}` } }
       )
       setUnreadCount(response.data.unreadCount)
@@ -79,7 +80,7 @@ export default function DashboardPage() {
     try {
       const token = localStorage.getItem('token')
       const response = await axios.get(
-        'http://localhost:5000/api/notifications/unread-count',
+        apiUrl('/api/notifications/unread-count'),
         { headers: { Authorization: `Bearer ${token}` } }
       )
       setNotificationCount(response.data.unreadCount)

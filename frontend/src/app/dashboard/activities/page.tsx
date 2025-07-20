@@ -91,7 +91,7 @@ export default function ActivitiesPage() {
       if (filterCategory) params.append('category', filterCategory)
 
       const response = await axios.get(
-        `http://localhost:5000/api/activities/?${params.toString()}`,
+        `https://autism-support-platform-production.up.railway.app/api/activities/?${params.toString()}`,
         { headers: getAuthHeaders() }
       )
       setActivities(response.data)
@@ -118,7 +118,7 @@ export default function ActivitiesPage() {
 
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/upload/',
+        'https://autism-support-platform-production.up.railway.app/api/upload/',
         formData,
         {
           headers: {
@@ -151,7 +151,7 @@ export default function ActivitiesPage() {
 
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/activities/',
+        'https://autism-support-platform-production.up.railway.app/api/activities/',
         uploadForm,
         { headers: getAuthHeaders() }
       )
@@ -448,7 +448,7 @@ export default function ActivitiesPage() {
                   <div className="flex gap-2">
                     {activity.fileUrl && (
                       <a
-                        href={`http://localhost:5000${activity.fileUrl}`}
+                        href={`https://autism-support-platform-production.up.railway.app${activity.fileUrl}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="btn-primary text-sm px-3 py-1"

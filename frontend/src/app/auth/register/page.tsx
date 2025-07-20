@@ -41,7 +41,7 @@ export default function RegisterPage() {
 
     try {
       console.log('Sending registration data:', formData)
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, formData)
+      const response = await axios.post(`https://autism-support-platform-production.up.railway.app/api/auth/register`, formData)
       
       console.log('Registration response:', response.data)
       
@@ -51,7 +51,7 @@ export default function RegisterPage() {
       
       // Auto-login the user after successful registration
       try {
-        const loginResponse = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+        const loginResponse = await axios.post(`https://autism-support-platform-production.up.railway.app/api/auth/login`, {
           email: formData.email,
           password: formData.password
         })
@@ -89,7 +89,7 @@ export default function RegisterPage() {
   const handleAutoLogin = async () => {
     setLoading(true)
     try {
-      const loginResponse = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+      const loginResponse = await axios.post(`https://autism-support-platform-production.up.railway.app/api/auth/login`, {
         email: formData.email,
         password: formData.password
       })

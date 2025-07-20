@@ -28,9 +28,8 @@ if (!fs.existsSync(avatarsDir)) {
 const allowedOrigins = [
   'http://localhost:3000',
   'https://autism-support-platform.vercel.app',
-  'https://autism-support-platform.netlify.app',
-  process.env.FRONTEND_URL
-].filter(Boolean);
+  'https://autism-support-platform.netlify.app'
+];
 
 app.use(cors({ 
   origin: function (origin, callback) {
@@ -151,7 +150,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Server error.' });
 });
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 8080
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 }); 

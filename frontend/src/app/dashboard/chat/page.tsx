@@ -50,14 +50,14 @@ export default function ChatPage() {
     setLoading(true)
     try {
       const response = await axios.get(
-        'http://localhost:5000/api/messages/conversations',
+        'https://autism-support-platform-production.up.railway.app/api/messages/conversations',
         { headers: getAuthHeaders() }
       )
       setConversations(response.data)
       
       // Update unread count in dashboard
       const unreadResponse = await axios.get(
-        'http://localhost:5000/api/messages/unread/count',
+        'https://autism-support-platform-production.up.railway.app/api/messages/unread/count',
         { headers: getAuthHeaders() }
       )
       // Dispatch custom event to update dashboard
@@ -77,7 +77,7 @@ export default function ChatPage() {
     setLoadingUsers(true)
     try {
       const response = await axios.get(
-        'http://localhost:5000/api/users/chat/list',
+        'https://autism-support-platform-production.up.railway.app/api/users/chat/list',
         { headers: getAuthHeaders() }
       )
       // No need to filter out current user as the backend already excludes them

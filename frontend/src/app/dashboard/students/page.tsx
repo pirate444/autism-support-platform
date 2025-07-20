@@ -98,7 +98,7 @@ export default function StudentsPage() {
       console.log('User data:', user);
       
       const response = await axios.get(
-        `http://localhost:5000${endpoint}`,
+        `https://autism-support-platform-production.up.railway.app${endpoint}`,
         { headers: getAuthHeaders() }
       )
       
@@ -120,7 +120,7 @@ export default function StudentsPage() {
     setLoadingUnassigned(true);
     try {
       const response = await axios.get(
-        'http://localhost:5000/api/students/unassigned',
+        'https://autism-support-platform-production.up.railway.app/api/students/unassigned',
         { headers: getAuthHeaders() }
       );
       setUnassignedStudents(response.data);
@@ -136,7 +136,7 @@ export default function StudentsPage() {
   const handleClaimStudent = async (studentId: string) => {
     try {
       await axios.post(
-        `http://localhost:5000/api/students/${studentId}/assign-self`,
+        `https://autism-support-platform-production.up.railway.app/api/students/${studentId}/assign-self`,
         {},
         { headers: getAuthHeaders() }
       );
@@ -188,7 +188,7 @@ export default function StudentsPage() {
 
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/students/',
+        'https://autism-support-platform-production.up.railway.app/api/students/',
         createForm,
         { headers: getAuthHeaders() }
       )
@@ -225,7 +225,7 @@ export default function StudentsPage() {
       if (user?.isAdmin) {
         // Admin: fetch all users, filter out already assigned and ministry_staff
         const response = await axios.get(
-          'http://localhost:5000/api/users/',
+          'https://autism-support-platform-production.up.railway.app/api/users/',
           { headers: getAuthHeaders() }
         );
         // Exclude already assigned and ministry_staff
@@ -236,7 +236,7 @@ export default function StudentsPage() {
       } else {
         // Non-admin: fetch only doctors
         const response = await axios.get(
-          'http://localhost:5000/api/doctors/',
+          'https://autism-support-platform-production.up.railway.app/api/doctors/',
           { headers: getAuthHeaders() }
         );
         users = response.data;
@@ -264,7 +264,7 @@ export default function StudentsPage() {
 
     try {
       const response = await axios.post(
-        `http://localhost:5000/api/students/${selectedStudent._id}/assign`,
+        `https://autism-support-platform-production.up.railway.app/api/students/${selectedStudent._id}/assign`,
         { userIds: selectedProfessionals },
         { headers: getAuthHeaders() }
       )
@@ -296,7 +296,7 @@ export default function StudentsPage() {
   const handleDeleteStudent = async (studentId: string) => {
     if (!window.confirm('Are you sure you want to delete this student? This action cannot be undone.')) return;
     try {
-      await axios.delete(`http://localhost:5000/api/students/${studentId}`, { headers: getAuthHeaders() });
+      await axios.delete(`https://autism-support-platform-production.up.railway.app/api/students/${studentId}`, { headers: getAuthHeaders() });
       toast.success('Student deleted successfully!');
       setShowDetailsModal(false);
       loadStudents();
