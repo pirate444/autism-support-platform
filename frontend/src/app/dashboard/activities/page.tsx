@@ -375,7 +375,23 @@ export default function ActivitiesPage() {
                     <p className="text-sm text-gray-600 mt-1">Uploading...</p>
                   )}
                   {uploadForm.fileUrl && (
-                    <p className="text-sm text-green-600 mt-1">✓ File uploaded</p>
+                    <div className="mt-2">
+                      <p className="text-sm text-green-600">✓ File uploaded</p>
+                      {/* Show preview for images */}
+                      {/\.(jpg|jpeg|png|gif)$/i.test(uploadForm.fileUrl) && (
+                        <img src={uploadForm.fileUrl} alt="Preview" style={{ maxWidth: 200, marginTop: 8 }} />
+                      )}
+                      {/* Show preview for videos */}
+                      {/\.(mp4|webm|ogg)$/i.test(uploadForm.fileUrl) && (
+                        <video src={uploadForm.fileUrl} controls style={{ maxWidth: 300, marginTop: 8 }} />
+                      )}
+                      {/* Download link for other files */}
+                      {!/\.(jpg|jpeg|png|gif|mp4|webm|ogg)$/i.test(uploadForm.fileUrl) && (
+                        <a href={uploadForm.fileUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                          Download File
+                        </a>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>

@@ -319,9 +319,10 @@ export default function CourseBuilderPage() {
                     </button>
                   </div>
                   {form.videoUrl && (
-                    <p className="text-sm text-green-600 mt-1">
-                      ✓ Video uploaded: {form.videoUrl.split("/").pop()}
-                    </p>
+                    <div className="mt-2">
+                      <p className="text-sm text-green-600">✓ Video uploaded</p>
+                      <video src={form.videoUrl} controls style={{ maxWidth: 300, marginTop: 8 }} />
+                    </div>
                   )}
                 </div>
                 <div>
@@ -345,9 +346,10 @@ export default function CourseBuilderPage() {
                     </button>
                   </div>
                   {form.thumbnailUrl && (
-                    <p className="text-sm text-green-600 mt-1">
-                      ✓ Thumbnail uploaded: {form.thumbnailUrl.split("/").pop()}
-                    </p>
+                    <div className="mt-2">
+                      <p className="text-sm text-green-600">✓ Thumbnail uploaded</p>
+                      <img src={form.thumbnailUrl} alt="Thumbnail" style={{ maxWidth: 120, marginTop: 8 }} />
+                    </div>
                   )}
                 </div>
               </div>

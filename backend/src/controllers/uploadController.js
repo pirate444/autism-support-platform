@@ -5,13 +5,11 @@ exports.uploadFile = async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded.' });
     }
-    
-    // Return the file URL
-    const fileUrl = `/uploads/${req.file.filename}`;
+    // Cloudinary URL is in req.file.path
     res.json({
       message: 'File uploaded successfully.',
-      fileUrl: fileUrl,
-      filename: req.file.filename,
+      fileUrl: req.file.path, // Cloudinary URL
+      public_id: req.file.filename,
       originalName: req.file.originalname,
       size: req.file.size
     });
@@ -20,19 +18,4 @@ exports.uploadFile = async (req, res) => {
   }
 };
 
-exports.getFile = async (req, res) => {
-  try {
-    const { filename } = req.params;
-    const filePath = path.join(__dirname, '../../uploads', filename);
-    
-    // Check if file exists
-    const fs = require('fs');
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ message: 'File not found.' });
-    }
-    
-    res.sendFile(filePath);
-  } catch (err) {
-    res.status(500).json({ message: 'Error retrieving file.', error: err.message });
-  }
-}; 
+
