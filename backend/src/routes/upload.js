@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const uploadController = require('../controllers/uploadController');
 const auth = require('../middleware/authMiddleware');
-const storage = require('../utils/cloudinaryStorage');
+const storage = require('../../utils/cloudinaryStorage');
 
 const upload = multer({ storage: storage });
 
