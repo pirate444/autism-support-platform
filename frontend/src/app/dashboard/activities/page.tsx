@@ -464,7 +464,7 @@ export default function ActivitiesPage() {
                   <div className="flex gap-2">
                     {activity.fileUrl && (
                       <a
-                        href={`https://autism-support-platform-production.up.railway.app${activity.fileUrl}`}
+                        href={`${activity.fileUrl}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="btn-primary text-sm px-3 py-1"
