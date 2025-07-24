@@ -14,7 +14,7 @@ exports.uploadFile = async (req, res) => {
       size: req.file.size
     });
   } catch (err) {
-    res.status(500).json({ message: 'Upload failed.', error: err.message });
+    res.status(500).json({ message: 'Upload failed.', error: err.message, stack: err.stack });
   }
 };
 
