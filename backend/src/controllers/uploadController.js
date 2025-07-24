@@ -14,7 +14,12 @@ exports.uploadFile = async (req, res) => {
       size: req.file.size
     });
   } catch (err) {
-    res.status(500).json({ message: 'Upload failed.', error: err.message, stack: err.stack });
+    res.status(500).json({
+      message: 'Upload failed.',
+      error: err.message,
+      stack: err.stack, // This gives you the full stack trace
+      fullError: err    // This will show the entire error object (optional, for even more detail)
+    });
   }
 };
 
