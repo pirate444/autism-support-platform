@@ -1,6 +1,7 @@
 const path = require('path');
 
 exports.uploadFile = async (req, res) => {
+  console.log('uploadFile called');
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded.' });
@@ -14,6 +15,7 @@ exports.uploadFile = async (req, res) => {
       size: req.file.size
     });
   } catch (err) {
+    console.log('UPLOAD ERROR:', err);
     res.status(500).json({
       message: 'Upload failed.',
       error: err.message,
