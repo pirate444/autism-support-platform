@@ -14,7 +14,7 @@ const storage = new CloudinaryStorage({
     allowed_formats: ['jpg', 'png', 'mp4', 'pdf', 'docx', 'jpeg', 'gif'], // Add formats you need
     resource_type: 'auto',
     // 👈 This makes sure all uploaded files are private
-    access_mode: 'authenticated'
+    access_mode: 'public'
   },
 });
 
