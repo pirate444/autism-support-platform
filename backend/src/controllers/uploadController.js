@@ -7,9 +7,15 @@ exports.uploadFile = async (req, res) => {
       return res.status(400).json({ message: 'No file uploaded.' });
     }
     
+    let fileUrl = req.file.path;
+    // Fix for PDFs: use /raw/upload/ instead of /image/upload/
+    if (fileUrl && fileUrl.endsWith('.pdf')) {
+      fileUrl = fileUrl.replace('/image/upload/', '/raw/upload/');
+    }
+
     res.json({
       message: 'File uploaded successfully.',
-      fileUrl: req.file.path,
+      fileUrl: fileUrl,
       public_id: req.file.filename,
       originalName: req.file.originalname,
       size: req.file.size
