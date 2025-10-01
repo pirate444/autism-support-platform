@@ -2,8 +2,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-// import useEmblaCarousel from 'embla-carousel-react';
-// import Autoplay from 'embla-carousel-autoplay';
+import useEmblaCarousel from 'embla-carousel-react';
+import Autoplay from 'embla-carousel-autoplay';
 
 const slides = [
   {
