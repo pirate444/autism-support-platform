@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import axios from 'axios'
 import toast from 'react-hot-toast'
+import { useLanguage } from '../../../../contexts/LanguageContext';
 
 interface CourseAccessRequest {
   _id: string
@@ -74,7 +75,7 @@ export default function CourseAccessManagementPage() {
     setLoading(true)
     try {
       const response = await axios.get(
-        `https://autism-support-platform-production.up.railway.app/api/course-access/all`,
+        `http://localhost:5000/api/course-access/all`,
         { headers: getAuthHeaders() }
       )
       setRequests(response.data.requests || response.data)
@@ -90,7 +91,7 @@ export default function CourseAccessManagementPage() {
     setProcessing(true)
     try {
       await axios.put(
-        `https://autism-support-platform-production.up.railway.app/api/course-access/${requestId}/approve`,
+        `http://localhost:5000/api/course-access/${requestId}/approve`,
         { adminResponse: adminResponse || 'Access approved.' },
         { headers: getAuthHeaders() }
       )
@@ -116,7 +117,7 @@ export default function CourseAccessManagementPage() {
     setProcessing(true)
     try {
       await axios.put(
-        `https://autism-support-platform-production.up.railway.app/api/course-access/${requestId}/reject`,
+        `http://localhost:5000/api/course-access/${requestId}/reject`,
         { adminResponse: adminResponse.trim() },
         { headers: getAuthHeaders() }
       )

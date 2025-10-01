@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import ChatModal from '../../../components/ChatModal'
+import { useLanguage } from '../../../contexts/LanguageContext';
+import DashboardLayout from '../DashboardLayout';
 
 interface User {
   _id: string
@@ -50,14 +52,14 @@ export default function ChatPage() {
     setLoading(true)
     try {
       const response = await axios.get(
-        'https://autism-support-platform-production.up.railway.app/api/messages/conversations',
+        'http://localhost:5000/api/messages/conversations',
         { headers: getAuthHeaders() }
       )
       setConversations(response.data)
       
       // Update unread count in dashboard
       const unreadResponse = await axios.get(
-        'https://autism-support-platform-production.up.railway.app/api/messages/unread/count',
+        'http://localhost:5000/api/messages/unread/count',
         { headers: getAuthHeaders() }
       )
       // Dispatch custom event to update dashboard
@@ -77,7 +79,7 @@ export default function ChatPage() {
     setLoadingUsers(true)
     try {
       const response = await axios.get(
-        'https://autism-support-platform-production.up.railway.app/api/users/chat/list',
+        'http://localhost:5000/api/users/chat/list',
         { headers: getAuthHeaders() }
       )
       // No need to filter out current user as the backend already excludes them
@@ -127,31 +129,22 @@ export default function ChatPage() {
     return role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
   }
 
+  const user = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "null") : null;
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/';
+  };
+  if (!user) return null;
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">
-                Messages
-              </h1>
-            </div>
-            <button
-              onClick={handleNewChat}
-              className="btn-primary"
-            >
-              New Chat
-            </button>
-          </div>
-        </div>
-      </header>
-
+    <DashboardLayout user={user} handleLogout={handleLogout}>
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="card">
-          <h2 className="text-xl font-semibold mb-4">Conversations</h2>
+          <div className="flex justify-center mb-2">
+            <span className="text-3xl">💬</span>
+          </div>
+          <h2 className="text-xl font-extrabold text-blue-600 mb-4 text-center drop-shadow">Conversations</h2>
           
           {loading ? (
             <div className="text-center py-8">
@@ -163,9 +156,9 @@ export default function ChatPage() {
               <p className="text-gray-600 mb-4">No conversations yet.</p>
               <button
                 onClick={handleNewChat}
-                className="btn-primary"
+                className="btn-primary text-lg px-4 py-2 rounded-full shadow-md"
               >
-                Start Your First Chat
+                <span className="text-lg">🗨️ Start Your First Chat</span>
               </button>
             </div>
           ) : (
@@ -218,7 +211,7 @@ export default function ChatPage() {
             </div>
           )}
         </div>
-      </main>
+      </div>
 
       {/* New Chat Modal */}
       {showNewChatModal && (
@@ -288,6 +281,6 @@ export default function ChatPage() {
           recipientName={selectedUser.name}
         />
       )}
-    </div>
+    </DashboardLayout>
   )
 } 

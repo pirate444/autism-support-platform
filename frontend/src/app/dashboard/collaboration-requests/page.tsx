@@ -62,7 +62,7 @@ export default function CollaborationRequestsPage() {
   const fetchAllRequests = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`https://autism-support-platform-production.up.railway.app/api/collaboration-requests/all`, {
+      const response = await axios.get(`http://localhost:5000/api/collaboration-requests/all`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setRequests(response.data);
@@ -76,7 +76,7 @@ export default function CollaborationRequestsPage() {
   const fetchMyRequests = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`https://autism-support-platform-production.up.railway.app/api/collaboration-requests/my`, {
+      const response = await axios.get(`http://localhost:5000/api/collaboration-requests/my`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setRequests(response.data);
@@ -91,7 +91,7 @@ export default function CollaborationRequestsPage() {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `https://autism-support-platform-production.up.railway.app/api/collaboration-requests/${requestId}/status`,
+        `http://localhost:5000/api/collaboration-requests/${requestId}/status`,
         {
           status,
           adminResponse: adminResponse || undefined

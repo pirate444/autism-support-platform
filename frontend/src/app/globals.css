@@ -1,61 +1,393 @@
+/* Tailwind directives */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/*
+==============================================
+COLOR VARIABLES - New Joyful & Kid-Friendly Palette
+==============================================
+Using a calm background with bright, happy accent colors.
+*/
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --color-primary: #5c95ff; /* Cheerful Blue */
+  --color-secondary: #ffda79; /* Sunny Yellow */
+  --color-accent: #ff9a8d; /* Friendly Coral */
+  --color-fun-green: #4dd0e1; /* Playful Teal */
+  
+  --color-background: #fdfdfd; /* Clean, Soft White Background */
+  --color-text-primary: #2563eb; /* Joyful Blue for main text */
+  --color-text-secondary: #ff9a8d; /* Friendly Coral for secondary text */
+  --color-border: #ffda79; /* Sunny Yellow for borders */
+
+  --color-focus: var(--color-primary); /* Use primary for focus */
+  --color-selection-bg: var(--color-primary);
+  --color-selection-text: #ffffff;
+
+  /* State Colors - Clear and bright */
+  --color-error: #ff7675; /* Bright but not harsh Red */
+  --color-error-bg: #ffebee;
+  --color-success: #55d6be; /* Bright Teal/Green */
+  --color-success-bg: #e8f5e9;
+  --color-warning: #fbc531; /* Bright Yellow/Orange */
+  --color-warning-bg: #fff8e1;
+}
+
+/* Dark Mode Color Variables - Adjusted for a gentler dark theme */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-primary: #6c9eff;
+    --color-secondary: #ffe18b;
+    --color-accent: #ffab9f;
+    --color-fun-green: #5ee1f1;
+
+    --color-background: #2a3447;
+    --color-text-primary: #e0e6f0;
+    --color-text-secondary: #a0aec0;
+    --color-border: #4a5568;
+    --color-focus: var(--color-primary);
+    --color-selection-bg: var(--color-primary);
+    --color-selection-text: #ffffff;
+
+    --color-error: #e57373;
+    --color-error-bg: #422a2a;
+    --color-success: #81c784;
+    --color-success-bg: #2d422d;
+    --color-warning: #ffb74d;
+    --color-warning-bg: #42382a;
+  }
+}
+
+
+/*
+==============================================
+KEYFRAMES
+Gentle animations. (No changes from previous version)
+==============================================
+*/
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); } 
+}
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-15px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(15px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes bounce-in {
+  0% { opacity: 0; transform: scale(0.6); }
+  50% { opacity: 1; transform: scale(1.02); }
+  70% { transform: scale(0.98); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -150px 0; }
+  100% { background-position: calc(150px + 100%) 0; }
+}
+
+@keyframes loading-dots {
+  0%, 20% { content: '.'; }
+  40%, 60% { content: '..'; }
+  80%, 100% { content: '...'; }
+}
+
+
+/*
+==============================================
+BASE LAYER
+Typography, base element styles, and resets.
+==============================================
+*/
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Comic Sans MS', 'Open Sans', 'Arial', sans-serif; /* Child-friendly font suggestion */
+    line-height: 1.8; /* Increased line height for readability */
+    color: var(--color-text-primary);
+    background-color: var(--color-background);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    color: #ff6f61; /* Vibrant coral for headings */
+  }
+  
+  h1 { font-size: 2.5rem; }
+  h2 { font-size: 2rem; }
+  h3 { font-size: 1.75rem; }
+  h4 { font-size: 1.5rem; }
+  h5 { font-size: 1.25rem; }
+  h6 { font-size: 1rem; }
+
+
+  /* Joyful Selection Styling */
+  ::selection {
+    background-color: var(--color-selection-bg);
+    color: var(--color-selection-text);
+  }
+
+  ::-moz-selection {
+    background-color: var(--color-selection-bg);
+    color: var(--color-selection-text);
+  }
+
+  /* Clear and bright Focus Ring for Interactive Elements */
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+  
+  /* Disabled State Styling */
+  button:disabled,
+  input:disabled,
+  textarea:disabled,
+  select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+    background-color: var(--color-border);
+    color: var(--color-text-secondary);
+  }
+
+  /* Custom scrollbar styling with joyful colors */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #ffda79;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #4dd0e1;
+    border-radius: 5px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #ff9a8d;
+  }
+}
+
+/*
+==============================================
+COMPONENTS LAYER
+The rest of the file remains the same, as it will now use your new color variables.
+==============================================
+*/
+@layer components {
+  /* Interactive Effects - Softer transitions and less aggressive transforms */
+  .hover-lift {
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out; /* Shorter, softer transition */
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px); /* Less lift */
+    box-shadow: 0 5px 10px -2px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.02); /* Softer shadow */
+  }
+
+  .sensory-friendly {
+    transition: all 0.2s ease;
+  }
+
+  .sensory-friendly:hover {
+    transform: scale(1.01); /* Very subtle scale */
+  }
+
+  /* Card Component - Softer appearance, clearer hierarchy */
+  .card {
+    background-color: #ffffff;
+    border-radius: 1rem; /* More rounded corners */
+    box-shadow: 0 5px 10px -2px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.02); /* Softer initial shadow */
+    padding: 1.5rem;
+    margin-bottom: 1.25rem; /* Slightly more space */
+    transition: all 0.2s ease-out;
+    border: 1px solid var(--color-border);
+    position: relative;
+  }
+  .card:hover {
+    box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03); /* Softer hover shadow */
+    transform: translateY(-2px); /* Less aggressive lift */
+    border-color: var(--color-primary); /* Gentle primary color on hover */
+  }
+  .card .card-title {
+    font-size: 1.25rem; /* Slightly larger title for readability */
+    font-weight: bold;
+    color: var(--color-text-primary);
+    margin-bottom: 0.75rem;
+  }
+  .card .card-desc {
+    color: var(--color-text-secondary);
+    font-size: 1rem; /* Increased base font size */
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+  .card .card-footer {
+    margin-top: 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* State Components - Gentler colors, clear but not alarming */
+  .loading {
+    position: relative;
+    overflow: hidden;
+  }
+  .loading::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent); /* Softer shimmer effect */
+    animation: shimmer 1.5s infinite;
+  }
+  .error-state {
+    border-color: var(--color-error);
+    background-color: var(--color-error-bg);
+    color: #c0392b; 
+  }
+  .error-state:focus-visible {
+    outline-color: var(--color-error);
+  }
+  .success-state {
+    border-color: var(--color-success);
+    background-color: var(--color-success-bg);
+    color: #16a085;
+  }
+  .success-state:focus-visible {
+    outline-color: var(--color-success);
+  }
+  .warning-state {
+    border-color: var(--color-warning);
+    background-color: var(--color-warning-bg);
+    color: #f39c12;
+  }
+  .warning-state:focus-visible {
+    outline-color: var(--color-warning);
+  }
+}
+
+
+/*
+==============================================
+UTILITIES & MEDIA QUERIES
+(No changes from previous version)
+==============================================
+*/
+@layer utilities {
+  .animate-float { animation: float 4s ease-in-out infinite; }
+  .animate-slide-in-left { animation: slide-in-left 0.5s ease-out; }
+  .animate-slide-in-right { animation: slide-in-right 0.5s ease-out; }
+  .animate-bounce-in { animation: bounce-in 0.7s ease-out; }
+  .animate-fade-in-up { animation: fade-in-up 0.6s ease-out; }
+  .animate-shimmer {
+    background: linear-gradient(90deg, var(--color-background) 25%, var(--color-border) 50%, var(--color-background) 75%);
+    background-size: 150px 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  .focus-visible:focus {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  .loading-dots {
+    display: inline-block;
+    color: var(--color-text-secondary);
+  }
+  .loading-dots::after {
+    content: '.';
+    animation: loading-dots 1.5s infinite;
+  }
+
+  .space-responsive { gap: clamp(1rem, 3vw, 2rem); }
+  .p-responsive { padding: clamp(1rem, 4vw, 2rem); }
+  .m-responsive { margin: clamp(1rem, 4vw, 2rem); }
+}
+
+@media (prefers-contrast: high) {
+  .bg-gradient-to-r {
+    background: #000000 !important;
+    color: #ffffff !important;
+  }
+  .border {
+    border-color: #000000 !important;
+  }
+  .shadow-lg, .shadow-xl, .shadow-2xl {
+    box-shadow: 0 0 0 2px #000000 !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-float,
+  .animate-slide-in-left,
+  .animate-slide-in-right,
+  .animate-bounce-in,
+  .animate-fade-in-up,
+  .animate-shimmer,
+  .loading-dots::after {
+    animation: none !important;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .print-break {
+    page-break-before: always;
+  }
+  body {
+    font-size: 12pt;
+    line-height: 1.4;
+    color: #000 !important;
+    background: #fff !important;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+  .auto-dark {
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+  }
+  .auto-dark-border {
+    border-color: var(--color-border);
   }
 }
-
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
-}
-
-@layer components {
-  .btn-primary {
-    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
-  }
-  
-  .btn-secondary {
-    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200;
-  }
-  
-  .btn-danger {
-    @apply bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
-  }
-  
-  .btn-xs {
-    @apply py-1 px-2 text-xs;
-  }
-  
-  .btn-sm {
-    @apply py-1.5 px-3 text-sm;
-  }
-  
-  .btn-lg {
-    @apply py-3 px-6 text-lg;
-  }
-  
-  .input-field {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
-  }
-  
-  .card {
-    @apply bg-white rounded-lg shadow-md p-6;
-  }
-} 

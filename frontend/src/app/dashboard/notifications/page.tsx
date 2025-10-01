@@ -263,6 +263,9 @@ export default function NotificationsPage() {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Filters */}
         <div className="card mb-6">
+          <div className="flex justify-center mb-2">
+            <span className="text-3xl">🔔</span>
+          </div>
           <div className="flex flex-wrap gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">

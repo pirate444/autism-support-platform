@@ -46,14 +46,14 @@ export default function ChatModal({ isOpen, onClose, recipientId, recipientName 
     setLoading(true)
     try {
       const response = await axios.get(
-        `https://autism-support-platform-production.up.railway.app/api/messages/${recipientId}`,
+        `http://localhost:5000/api/messages/${recipientId}`,
         { headers: getAuthHeaders() }
       )
       setMessages(response.data)
       
       // Mark messages as read
       await axios.put(
-        `https://autism-support-platform-production.up.railway.app/api/messages/${recipientId}/read`,
+        `http://localhost:5000/api/messages/${recipientId}/read`,
         {},
         { headers: getAuthHeaders() }
       )
@@ -76,7 +76,7 @@ export default function ChatModal({ isOpen, onClose, recipientId, recipientName 
     setSending(true)
     try {
       const response = await axios.post(
-        'https://autism-support-platform-production.up.railway.app/api/messages/',
+        'http://localhost:5000/api/messages/',
         {
           recipientId,
           content: newMessage.trim()

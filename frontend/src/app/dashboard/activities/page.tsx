@@ -3,6 +3,9 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
+import { useLanguage } from '../../../contexts/LanguageContext';
+import LanguageSwitcher from '../../../components/LanguageSwitcher'
+import DashboardLayout from '../DashboardLayout';
 
 interface Activity {
   _id: string
@@ -46,6 +49,7 @@ const activityCategories = [
 ]
 
 export default function ActivitiesPage() {
+  const { t } = useLanguage();
   const [activities, setActivities] = useState<Activity[]>([])
   const [loading, setLoading] = useState(true)
   const [showUploadForm, setShowUploadForm] = useState(false)
@@ -91,7 +95,7 @@ export default function ActivitiesPage() {
       if (filterCategory) params.append('category', filterCategory)
 
       const response = await axios.get(
-        `https://autism-support-platform-production.up.railway.app/api/activities/?${params.toString()}`,
+        `http://localhost:5000/api/activities/?${params.toString()}`,
         { headers: getAuthHeaders() }
       )
       setActivities(response.data)
@@ -118,7 +122,7 @@ export default function ActivitiesPage() {
 
     try {
       const response = await axios.post(
-        'https://autism-support-platform-production.up.railway.app/api/upload/',
+        'http://localhost:5000/api/upload/',
         formData,
         {
           headers: {
@@ -151,7 +155,7 @@ export default function ActivitiesPage() {
 
     try {
       const response = await axios.post(
-        'https://autism-support-platform-production.up.railway.app/api/activities/',
+        'http://localhost:5000/api/activities/',
         uploadForm,
         { headers: getAuthHeaders() }
       )
@@ -187,71 +191,54 @@ export default function ActivitiesPage() {
     return category.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())
   }
 
+  if (!user) return null;
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/';
+  };
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">
-                Activities & Games
-              </h1>
-            </div>
-            {isTrainer ? (
-              <button
-                onClick={() => setShowUploadForm(true)}
-                className="btn-primary"
-              >
-                Upload New Activity
-              </button>
-            ) : (
-              <div className="text-sm text-gray-600 bg-yellow-50 px-3 py-2 rounded-md">
-                Only trainers can upload activities
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
-
+    <DashboardLayout user={user} handleLogout={handleLogout}>
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Notice for non-trainers */}
         {!isTrainer && (
           <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
             <p className="text-sm text-blue-800">
-              <strong>Note:</strong> Only trainers (Specialist Educators) can upload new activities and games. 
-              You can browse and use existing activities below.
+              <strong>{t('note')}:</strong> {t('onlyTrainersNotice')}
             </p>
           </div>
         )}
 
         {/* Search and Filter Section */}
         <div className="card mb-8">
-          <h2 className="text-xl font-semibold mb-4">Search & Filter Activities</h2>
+          <div className="flex justify-center mb-2">
+            <span className="text-3xl">🎲</span>
+          </div>
+          <h2 className="text-xl font-extrabold text-pink-600 mb-4 text-center drop-shadow">{t('searchFilterActivities')}</h2>
           <div className="grid md:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Search by Title
+                {t('searchByTitle')}
               </label>
               <input
                 type="text"
                 value={searchTitle}
                 onChange={(e) => setSearchTitle(e.target.value)}
-                placeholder="Search activities..."
+                placeholder={t('searchActivitiesPlaceholder')}
                 className="input-field"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Filter by Type
+                {t('filterByType')}
               </label>
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
                 className="input-field"
               >
-                <option value="">All Types</option>
+                <option value="">{t('allTypes')}</option>
                 {activityTypes.map(type => (
                   <option key={type} value={type}>{getTypeDisplayName(type)}</option>
                 ))}
@@ -259,14 +246,14 @@ export default function ActivitiesPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Filter by Category
+                {t('filterByCategory')}
               </label>
               <select
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
                 className="input-field"
               >
-                <option value="">All Categories</option>
+                <option value="">{t('allCategories')}</option>
                 {activityCategories.map(category => (
                   <option key={category} value={category}>{getCategoryDisplayName(category)}</option>
                 ))}
@@ -275,9 +262,9 @@ export default function ActivitiesPage() {
             <div className="flex items-end">
               <button
                 onClick={clearFilters}
-                className="btn-secondary w-full"
+                className="btn-secondary w-full text-lg px-4 py-2 rounded-full shadow-md"
               >
-                Clear Filters
+                <span className="text-lg">🧹 {t('clearFilters')}</span>
               </button>
             </div>
           </div>
@@ -285,13 +272,16 @@ export default function ActivitiesPage() {
 
         {/* Upload Form */}
         {showUploadForm && (
-          <div className="card mb-8">
-            <h2 className="text-xl font-semibold mb-4">Upload New Activity</h2>
+          <div className="card mb-8 bg-gradient-to-br from-pink-100 via-yellow-100 to-blue-100 border-4 border-pink-200 rounded-3xl">
+            <div className="flex justify-center mb-2">
+              <span className="text-3xl">🪁</span>
+            </div>
+            <h2 className="text-xl font-extrabold text-pink-600 mb-4 text-center drop-shadow">{t('uploadNewActivity')}</h2>
             <form onSubmit={handleCreateActivity} className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Title *
+                    {t('title')} *
                   </label>
                   <input
                     type="text"
@@ -299,14 +289,14 @@ export default function ActivitiesPage() {
                     value={uploadForm.title}
                     onChange={handleUploadFormChange}
                     className="input-field"
-                    placeholder="Enter activity title"
+                    placeholder={t('enterActivityTitle')}
                     required
                   />
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Type *
+                    {t('type')} *
                   </label>
                   <select
                     name="type"
@@ -315,7 +305,7 @@ export default function ActivitiesPage() {
                     className="input-field"
                     required
                   >
-                    <option value="">Select type</option>
+                    <option value="">{t('selectType')}</option>
                     {activityTypes.map((type) => (
                       <option key={type} value={type}>
                         {getTypeDisplayName(type)}
@@ -327,7 +317,7 @@ export default function ActivitiesPage() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description *
+                  {t('description')} *
                 </label>
                 <textarea
                   name="description"
@@ -335,7 +325,7 @@ export default function ActivitiesPage() {
                   onChange={handleUploadFormChange}
                   className="input-field"
                   rows={3}
-                  placeholder="Describe the activity or game"
+                  placeholder={t('describeActivityPlaceholder')}
                   required
                 />
               </div>
@@ -343,7 +333,7 @@ export default function ActivitiesPage() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Category
+                    {t('category')}
                   </label>
                   <select
                     name="category"
@@ -351,7 +341,7 @@ export default function ActivitiesPage() {
                     onChange={handleUploadFormChange}
                     className="input-field"
                   >
-                    <option value="">Select category</option>
+                    <option value="">{t('selectCategory')}</option>
                     {activityCategories.map((category) => (
                       <option key={category} value={category}>
                         {getCategoryDisplayName(category)}
@@ -362,7 +352,7 @@ export default function ActivitiesPage() {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Upload File
+                    {t('uploadFile')}
                   </label>
                   <input
                     type="file"
@@ -372,23 +362,23 @@ export default function ActivitiesPage() {
                     disabled={uploadingFile}
                   />
                   {uploadingFile && (
-                    <p className="text-sm text-gray-600 mt-1">Uploading...</p>
+                    <p className="text-sm text-gray-600 mt-1">{t('uploading')}</p>
                   )}
                   {uploadForm.fileUrl && (
                     <div className="mt-2">
-                      <p className="text-sm text-green-600">✓ File uploaded</p>
+                      <p className="text-sm text-green-600">✓ {t('fileUploaded')}</p>
                       {/* Show preview for images */}
-                      {/\.(jpg|jpeg|png|gif)$/i.test(uploadForm.fileUrl) && (
+                      {/(.jpg|.jpeg|.png|.gif)$/i.test(uploadForm.fileUrl) && (
                         <img src={uploadForm.fileUrl} alt="Preview" style={{ maxWidth: 200, marginTop: 8 }} />
                       )}
                       {/* Show preview for videos */}
-                      {/\.(mp4|webm|ogg)$/i.test(uploadForm.fileUrl) && (
+                      {/(.mp4|.webm|.ogg)$/i.test(uploadForm.fileUrl) && (
                         <video src={uploadForm.fileUrl} controls style={{ maxWidth: 300, marginTop: 8 }} />
                       )}
                       {/* Download link for other files */}
-                      {!/\.(jpg|jpeg|png|gif|mp4|webm|ogg)$/i.test(uploadForm.fileUrl) && (
+                      {!/(.jpg|.jpeg|.png|.gif|.mp4|.webm|.ogg)$/i.test(uploadForm.fileUrl) && (
                         <a href={uploadForm.fileUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-                          Download File
+                          {t('downloadFile')}
                         </a>
                       )}
                     </div>
@@ -398,14 +388,14 @@ export default function ActivitiesPage() {
               
               <div className="flex gap-4">
                 <button type="submit" className="btn-primary">
-                  Create Activity
+                  {t('createActivity')}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowUploadForm(false)}
                   className="btn-secondary"
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
               </div>
             </form>
@@ -415,20 +405,20 @@ export default function ActivitiesPage() {
         {/* Activities List */}
         <div className="card">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Educational Resources</h2>
+            <h2 className="text-xl font-semibold">{t('educationalResources')}</h2>
             <span className="text-sm text-gray-600">
-              {activities.length} resource{activities.length !== 1 ? 's' : ''} found
+              {activities.length} {t('resource', { count: activities.length })}{activities.length !== 1 ? t('pluralS') : ''} {t('found')}
             </span>
           </div>
           
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-              <p className="mt-2 text-gray-600">Loading activities...</p>
+              <p className="mt-2 text-gray-600">{t('loadingActivities')}</p>
             </div>
           ) : activities.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-600">No activities found. Try adjusting your search criteria or upload a new activity.</p>
+              <p className="text-gray-600">{t('noActivitiesFound')}</p>
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -450,11 +440,11 @@ export default function ActivitiesPage() {
                   <div className="space-y-2 mb-4">
                     {activity.category && (
                       <div className="text-xs text-gray-500">
-                        Category: {getCategoryDisplayName(activity.category)}
+                        {t('category')}: {getCategoryDisplayName(activity.category)}
                       </div>
                     )}
                     <div className="text-xs text-gray-500">
-                      By: {activity.createdBy.name} ({getTypeDisplayName(activity.createdBy.role)})
+                      {t('by')}: {activity.createdBy.name} ({getTypeDisplayName(activity.createdBy.role)})
                     </div>
                     <div className="text-xs text-gray-500">
                       {new Date(activity.createdAt).toLocaleDateString()}
@@ -469,11 +459,11 @@ export default function ActivitiesPage() {
                         rel="noopener noreferrer"
                         className="btn-primary text-sm px-3 py-1"
                       >
-                        Download
+                        {t('download')}
                       </a>
                     )}
                     <button className="btn-secondary text-sm px-3 py-1">
-                      View Details
+                      {t('viewDetails')}
                     </button>
                   </div>
                 </div>
@@ -481,7 +471,7 @@ export default function ActivitiesPage() {
             </div>
           )}
         </div>
-      </main>
-    </div>
+      </div>
+    </DashboardLayout>
   )
 } 

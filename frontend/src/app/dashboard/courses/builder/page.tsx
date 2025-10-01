@@ -72,7 +72,7 @@ export default function CourseBuilderPage() {
       const formData = new FormData();
       formData.append("video", videoFile);
       const response = await axios.post(
-        "https://autism-support-platform-production.up.railway.app/api/courses/upload/video",
+        "http://localhost:5000/api/courses/upload/video",
         formData,
         {
           headers: {
@@ -101,7 +101,7 @@ export default function CourseBuilderPage() {
       const formData = new FormData();
       formData.append("thumbnail", thumbnailFile);
       const response = await axios.post(
-        "https://autism-support-platform-production.up.railway.app/api/courses/upload/thumbnail",
+        "http://localhost:5000/api/courses/upload/thumbnail",
         formData,
         {
           headers: {
@@ -142,7 +142,7 @@ export default function CourseBuilderPage() {
         price: form.isFree ? 0 : parseFloat(form.price),
       };
       await axios.post(
-        "https://autism-support-platform-production.up.railway.app/api/courses/",
+        "http://localhost:5000/api/courses/",
         courseData,
         { headers: getAuthHeaders() }
       );

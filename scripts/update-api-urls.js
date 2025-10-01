@@ -3,7 +3,7 @@ const path = require('path');
 
 // Configuration
 const OLD_API_URL = 'http://localhost:5000';
-const NEW_API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://autism-support-platform-production.up.railway.app';
+const NEW_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 // Files to update (relative to frontend directory)
 const filesToUpdate = [

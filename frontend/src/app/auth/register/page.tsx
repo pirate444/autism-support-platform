@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import axios from 'axios'
 import toast from 'react-hot-toast'
+import { useLanguage } from '../../../contexts/LanguageContext'
+import LanguageSwitcher from '../../../components/LanguageSwitcher'
 
 const roles = [
   { value: 'child_psychiatrist', label: 'Child Psychiatrist' },
@@ -19,6 +21,7 @@ const roles = [
 
 export default function RegisterPage() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -41,7 +44,7 @@ export default function RegisterPage() {
 
     try {
       console.log('Sending registration data:', formData)
-      const response = await axios.post(`https://autism-support-platform-production.up.railway.app/api/auth/register`, formData)
+      const response = await axios.post(`http://localhost:5000/api/auth/register`, formData)
       
       console.log('Registration response:', response.data)
       
@@ -51,7 +54,7 @@ export default function RegisterPage() {
       
       // Auto-login the user after successful registration
       try {
-        const loginResponse = await axios.post(`https://autism-support-platform-production.up.railway.app/api/auth/login`, {
+        const loginResponse = await axios.post(`http://localhost:5000/api/auth/login`, {
           email: formData.email,
           password: formData.password
         })
@@ -60,19 +63,19 @@ export default function RegisterPage() {
         localStorage.setItem('token', loginResponse.data.token)
         localStorage.setItem('user', JSON.stringify(loginResponse.data.user))
         
-        toast.success('Account created and logged in successfully!')
+        toast.success(t('registrationSuccessful'))
         router.push('/dashboard')
       } catch (loginError: any) {
         console.error('Auto-login error:', loginError)
         // If auto-login fails, redirect to login page
-        toast.success(`Account created successfully! Please sign in with ${formData.email}`)
+        toast.success(t('registrationSuccessful'))
         router.push('/auth/login')
       }
     } catch (error: any) {
       console.error('Registration error:', error)
       console.error('Error response:', error.response?.data)
       
-      let message = 'Registration failed'
+      let message = t('registrationFailed')
       if (error.response?.data?.message) {
         message = error.response.data.message
       } else if (error.message) {
@@ -89,7 +92,7 @@ export default function RegisterPage() {
   const handleAutoLogin = async () => {
     setLoading(true)
     try {
-      const loginResponse = await axios.post(`https://autism-support-platform-production.up.railway.app/api/auth/login`, {
+      const loginResponse = await axios.post(`http://localhost:5000/api/auth/login`, {
         email: formData.email,
         password: formData.password
       })
@@ -98,11 +101,11 @@ export default function RegisterPage() {
       localStorage.setItem('token', loginResponse.data.token)
       localStorage.setItem('user', JSON.stringify(loginResponse.data.user))
       
-      toast.success('Registration and login successful!')
+      toast.success(t('registrationSuccessful'))
       router.push('/dashboard')
     } catch (error: any) {
       console.error('Auto-login error:', error)
-      toast.error('Registration successful, but auto-login failed. Please sign in manually.')
+      toast.error(t('registrationFailed'))
       router.push('/auth/login')
     } finally {
       setLoading(false)
@@ -111,21 +114,23 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="absolute top-4 right-4">
+        <LanguageSwitcher />
+      </div>
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
+            {t('signUpForAccount')}
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
+            {t('alreadyHaveAccount')}{' '}
             <Link href="/auth/login" className="font-medium text-primary-600 hover:text-primary-500">
-              sign in to your existing account
+              {t('signInHere')}
             </Link>
           </p>
           <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
             <p className="text-sm text-blue-800">
-              <strong>Note:</strong> Admin accounts are created separately. 
-              Contact your platform administrator for admin access.
+              <strong>{t('note')}:</strong> {t('adminAccountsNote')}
             </p>
           </div>
         </div>
@@ -134,7 +139,7 @@ export default function RegisterPage() {
           <div className="space-y-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Full Name
+                {t('name')}
               </label>
               <input
                 id="name"
@@ -142,7 +147,7 @@ export default function RegisterPage() {
                 type="text"
                 required
                 className="input-field mt-1"
-                placeholder="Enter your full name"
+                placeholder={t('enterFirstName')}
                 value={formData.name}
                 onChange={handleChange}
               />
@@ -150,7 +155,7 @@ export default function RegisterPage() {
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
+                {t('emailAddress')}
               </label>
               <input
                 id="email"
@@ -159,7 +164,7 @@ export default function RegisterPage() {
                 autoComplete="email"
                 required
                 className="input-field mt-1"
-                placeholder="Enter your email"
+                placeholder={t('enterEmail')}
                 value={formData.email}
                 onChange={handleChange}
               />
@@ -167,7 +172,7 @@ export default function RegisterPage() {
             
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
+                {t('password')}
               </label>
               <input
                 id="password"
@@ -176,7 +181,7 @@ export default function RegisterPage() {
                 autoComplete="new-password"
                 required
                 className="input-field mt-1"
-                placeholder="Enter your password"
+                placeholder={t('enterPassword')}
                 value={formData.password}
                 onChange={handleChange}
               />
@@ -184,7 +189,7 @@ export default function RegisterPage() {
 
             <div>
               <label htmlFor="role" className="block text-sm font-medium text-gray-700">
-                Role
+                {t('role')}
               </label>
               <select
                 id="role"
@@ -194,7 +199,7 @@ export default function RegisterPage() {
                 value={formData.role}
                 onChange={handleChange}
               >
-                <option value="">Select your role</option>
+                <option value="">{t('selectRole')}</option>
                 {roles.map((role) => (
                   <option key={role.value} value={role.value}>
                     {role.label}
@@ -205,14 +210,14 @@ export default function RegisterPage() {
 
             <div>
               <label htmlFor="specialization" className="block text-sm font-medium text-gray-700">
-                Specialization (Optional)
+                {t('specialization')} ({t('optional')})
               </label>
               <input
                 id="specialization"
                 name="specialization"
                 type="text"
                 className="input-field mt-1"
-                placeholder="Enter your specialization"
+                placeholder={t('enterSpecialization')}
                 value={formData.specialization}
                 onChange={handleChange}
               />
@@ -225,7 +230,7 @@ export default function RegisterPage() {
               disabled={loading}
               className="btn-primary w-full flex justify-center py-3"
             >
-              {loading ? 'Creating account...' : 'Create account'}
+              {loading ? t('creatingAccount') : t('createAccount')}
             </button>
           </div>
         </form>

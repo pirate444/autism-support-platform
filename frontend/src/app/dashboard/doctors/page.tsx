@@ -5,6 +5,7 @@ import axios from 'axios'
 import toast from 'react-hot-toast'
 import ChatModal from '../../../components/ChatModal'
 import NotificationBadge from '../../../components/NotificationBadge'
+import DashboardLayout from '../DashboardLayout';
 
 interface Doctor {
   _id: string
@@ -50,7 +51,7 @@ export default function DoctorsPage() {
   const loadDoctors = async () => {
     try {
       const response = await axios.get(
-        'https://autism-support-platform-production.up.railway.app/api/doctors/',
+        'http://localhost:5000/api/doctors/',
         { headers: getAuthHeaders() }
       )
       
@@ -59,7 +60,7 @@ export default function DoctorsPage() {
         response.data.map(async (doctor: Doctor) => {
           try {
             const unreadResponse = await axios.get(
-              `https://autism-support-platform-production.up.railway.app/api/messages/unread/count/${doctor._id}`,
+              `http://localhost:5000/api/messages/unread/count/${doctor._id}`,
               { headers: getAuthHeaders() }
             )
             return { ...doctor, unreadCount: unreadResponse.data.unreadCount }
@@ -81,6 +82,18 @@ export default function DoctorsPage() {
   useEffect(() => {
     loadDoctors()
   }, [])
+
+  const [user, setUser] = useState<any>(null);
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) setUser(JSON.parse(userData));
+  }, []);
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/';
+  };
+  if (!user) return null;
 
   // Filter doctors based on search query
   const filteredDoctors = doctors.filter(doctor =>
@@ -107,25 +120,15 @@ export default function DoctorsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">
-                Doctor Directory
-              </h1>
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <DashboardLayout user={user} handleLogout={handleLogout}>
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Intelligent Search Section */}
         <div className="card mb-8">
-          <h2 className="text-xl font-semibold mb-4">Search Healthcare Professionals</h2>
+          <div className="flex justify-center mb-2">
+            <span className="text-3xl">🩺</span>
+          </div>
+          <h2 className="text-xl font-extrabold text-pink-600 mb-4 text-center drop-shadow">Search Healthcare Professionals</h2>
           <div className="relative">
             <input
               type="text"
@@ -149,9 +152,12 @@ export default function DoctorsPage() {
 
         {/* Doctors List */}
         <div className="card">
+          <div className="flex justify-center mb-2">
+            <span className="text-3xl">👨‍⚕️👩‍⚕️</span>
+          </div>
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Healthcare Professionals</h2>
-            <span className="text-sm text-gray-600">
+            <h2 className="text-xl font-extrabold text-blue-600 drop-shadow">Healthcare Professionals</h2>
+            <span className="text-sm text-blue-600 font-bold">
               {filteredDoctors.length} professional{filteredDoctors.length !== 1 ? 's' : ''} found
             </span>
           </div>
@@ -265,7 +271,7 @@ export default function DoctorsPage() {
             <p className="text-gray-600">Occupational Therapists</p>
           </div>
         </div>
-      </main>
+      </div>
 
       {/* Doctor Profile Modal */}
       {showProfileModal && selectedDoctor && (
@@ -327,6 +333,6 @@ export default function DoctorsPage() {
           recipientName={selectedDoctor.name}
         />
       )}
-    </div>
+    </DashboardLayout>
   )
 } 

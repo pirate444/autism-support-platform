@@ -46,7 +46,7 @@ export default function AdminDashboard() {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await axios.get('https://autism-support-platform-production.up.railway.app/api/users', {
+      const response = await axios.get('http://localhost:5000/api/users', {
         headers: { Authorization: `Bearer ${token}` }
       })
       setUsers(response.data)
@@ -61,7 +61,7 @@ export default function AdminDashboard() {
   const fetchPendingCourseRequests = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await axios.get('https://autism-support-platform-production.up.railway.app/api/course-access-requests', {
+      const response = await axios.get('http://localhost:5000/api/course-access-requests', {
         headers: { Authorization: `Bearer ${token}` }
       })
       const pendingCount = response.data.filter((request: any) => request.status === 'pending').length
@@ -76,7 +76,7 @@ export default function AdminDashboard() {
     
     try {
       const token = localStorage.getItem('token')
-      await axios.delete(`https://autism-support-platform-production.up.railway.app/api/users/${userId}`, {
+      await axios.delete(`http://localhost:5000/api/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       toast.success('User deleted successfully')

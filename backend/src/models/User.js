@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, enum: roles, required: true },
   isAdmin: { type: Boolean, default: false }, // Single admin flag
+  language: { type: String, default: 'en', enum: ['en', 'ar', 'fr', 'es'] }, // Language preference
   specialization: { type: String }, // Required for doctor roles
   avatar: { type: String }, // URL to avatar image
   phone: { type: String },

@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
+import { useLanguage } from '../../../contexts/LanguageContext';
+import DashboardLayout from '../DashboardLayout';
 
 interface Student {
   _id: string
@@ -38,6 +40,7 @@ interface Professional {
 }
 
 export default function StudentsPage() {
+  const { t } = useLanguage();
   const [students, setStudents] = useState<Student[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
@@ -98,7 +101,7 @@ export default function StudentsPage() {
       console.log('User data:', user);
       
       const response = await axios.get(
-        `https://autism-support-platform-production.up.railway.app${endpoint}`,
+        `http://localhost:5000${endpoint}`,
         { headers: getAuthHeaders() }
       )
       
@@ -108,7 +111,7 @@ export default function StudentsPage() {
     } catch (error: any) {
       console.error('Error loading students:', error)
       console.error('Error response:', error.response?.data)
-      toast.error(`Failed to load students: ${error.response?.data?.message || error.message}`)
+      toast.error(`${t('failedToLoadStudents')}: ${error.response?.data?.message || error.message}`)
     } finally {
       setLoading(false)
     }
@@ -121,13 +124,13 @@ export default function StudentsPage() {
     setLoadingUnassigned(true);
     try {
       const response = await axios.get(
-        'https://autism-support-platform-production.up.railway.app/api/students/unassigned',
+        'http://localhost:5000/api/students/unassigned',
         { headers: getAuthHeaders() }
       );
       setUnassignedStudents(response.data);
     } catch (error: any) {
       console.error('Error loading unassigned students:', error);
-      toast.error(`Failed to load unassigned students: ${error.response?.data?.message || error.message}`);
+      toast.error(`${t('failedToLoadUnassignedStudents')}: ${error.response?.data?.message || error.message}`);
     } finally {
       setLoadingUnassigned(false);
     }
@@ -137,17 +140,17 @@ export default function StudentsPage() {
   const handleClaimStudent = async (studentId: string) => {
     try {
       await axios.post(
-        `https://autism-support-platform-production.up.railway.app/api/students/${studentId}/assign-self`,
+        `http://localhost:5000/api/students/${studentId}/assign-self`,
         {},
         { headers: getAuthHeaders() }
       );
       
-      toast.success('Student claimed successfully!');
+      toast.success(`${t('studentClaimedSuccessfully')}`);
       // Reload both assigned and unassigned students
       loadStudents();
       loadUnassignedStudents();
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to claim student';
+      const message = error.response?.data?.message || `${t('failedToClaimStudent')}`;
       toast.error(message);
     }
   };
@@ -183,20 +186,20 @@ export default function StudentsPage() {
     e.preventDefault()
     
     if (!createForm.name || !createForm.dateOfBirth) {
-      toast.error('Please fill in all required fields')
+      toast.error(`${t('pleaseFillAllRequiredFields')}`);
       return
     }
 
     try {
       console.log('Creating student with data:', createForm)
       const response = await axios.post(
-        'https://autism-support-platform-production.up.railway.app/api/students/',
+        'http://localhost:5000/api/students/',
         createForm,
         { headers: getAuthHeaders() }
       )
       
       console.log('Student created successfully:', response.data)
-      toast.success('Student created successfully!')
+      toast.success(`${t('studentCreatedSuccessfully')}`);
       setShowCreateForm(false)
       setCreateForm({ name: '', dateOfBirth: '', ministryCode: '' })
       // Reload students to show the new one
@@ -204,7 +207,7 @@ export default function StudentsPage() {
       loadStudents()
     } catch (error: any) {
       console.error('Error creating student:', error)
-      const message = error.response?.data?.message || 'Failed to create student'
+      const message = error.response?.data?.message || `${t('failedToCreateStudent')}`
       toast.error(message)
     }
   }
@@ -230,7 +233,7 @@ export default function StudentsPage() {
       if (user?.isAdmin) {
         // Admin: fetch all users, filter out already assigned and ministry_staff
         const response = await axios.get(
-          'https://autism-support-platform-production.up.railway.app/api/users/',
+          'http://localhost:5000/api/users/',
           { headers: getAuthHeaders() }
         );
         // Exclude already assigned and ministry_staff
@@ -241,7 +244,7 @@ export default function StudentsPage() {
       } else {
         // Non-admin: fetch only doctors
         const response = await axios.get(
-          'https://autism-support-platform-production.up.railway.app/api/doctors/',
+          'http://localhost:5000/api/doctors/',
           { headers: getAuthHeaders() }
         );
         users = response.data;
@@ -249,7 +252,7 @@ export default function StudentsPage() {
       setProfessionals(users)
     } catch (error: any) {
       console.error('Error loading professionals:', error)
-      toast.error('Failed to load professionals')
+      toast.error(`${t('failedToLoadProfessionals')}`);
     } finally {
       setLoadingProfessionals(false)
     }
@@ -269,19 +272,19 @@ export default function StudentsPage() {
 
     try {
       const response = await axios.post(
-        `https://autism-support-platform-production.up.railway.app/api/students/${selectedStudent._id}/assign`,
+        `http://localhost:5000/api/students/${selectedStudent._id}/assign`,
         { userIds: selectedProfessionals },
         { headers: getAuthHeaders() }
       )
       
-      toast.success('Professionals assigned successfully!')
+      toast.success(`${t('professionalsAssignedSuccessfully')}`);
       setShowAssignModal(false)
       setSelectedStudent(null)
       setSelectedProfessionals([])
       // Reload students to show updated assignments
       loadStudents()
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to assign professionals'
+      const message = error.response?.data?.message || `${t('failedToAssignProfessionals')}`
       toast.error(message)
     }
   }
@@ -299,14 +302,14 @@ export default function StudentsPage() {
   }
 
   const handleDeleteStudent = async (studentId: string) => {
-    if (!window.confirm('Are you sure you want to delete this student? This action cannot be undone.')) return;
+    if (!window.confirm(`${t('confirmDeleteStudent')}`)) return;
     try {
-      await axios.delete(`https://autism-support-platform-production.up.railway.app/api/students/${studentId}`, { headers: getAuthHeaders() });
-      toast.success('Student deleted successfully!');
+      await axios.delete(`http://localhost:5000/api/students/${studentId}`, { headers: getAuthHeaders() });
+      toast.success(`${t('studentDeletedSuccessfully')}`);
       setShowDetailsModal(false);
       loadStudents();
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to delete student';
+      const message = error.response?.data?.message || `${t('failedToDeleteStudent')}`;
       toast.error(message);
     }
   };
@@ -323,41 +326,21 @@ export default function StudentsPage() {
     );
   });
 
+  if (!user) return null;
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/';
+  };
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">
-                {user?.isAdmin ? 'Students Management' : 'My Assigned Students'}
-              </h1>
-            </div>
-            {canAddStudents ? (
-              <button
-                onClick={() => setShowCreateForm(true)}
-                className="btn-primary"
-              >
-                Add New Student
-              </button>
-            ) : (
-              <div className="text-sm text-gray-600 bg-yellow-50 px-3 py-2 rounded-md">
-                Only teachers, parents, and trainers can add students
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
-
+    <DashboardLayout user={user} handleLogout={handleLogout}>
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Notice for users who can't add students */}
         {!canAddStudents && (
           <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
             <p className="text-sm text-blue-800">
-              <strong>Note:</strong> Only teachers (School Support Assistants), parents, and trainers (Specialist Educators) can add new students. 
-              You can search and view existing students below.
+              <strong>{t('note')}:</strong> {t('onlyCertainRolesCanAddStudents')}
             </p>
           </div>
         )}
@@ -366,8 +349,7 @@ export default function StudentsPage() {
         {!canAssignProfessionals && (
           <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-md">
             <p className="text-sm text-purple-800">
-              <strong>Note:</strong> Only administrators can assign healthcare professionals to students. 
-              You can view student details and assigned professionals below.
+              <strong>{t('note')}:</strong> {t('onlyAdminsAssignNotice')}
             </p>
           </div>
         )}
@@ -376,25 +358,28 @@ export default function StudentsPage() {
         {user?.isAdmin ? (
           <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-md">
             <p className="text-sm text-green-800">
-              <strong>Admin View:</strong> You can see all students in the system and assign healthcare professionals to them.
+              <strong>{t('adminView')}:</strong> {t('adminViewNotice')}
             </p>
           </div>
         ) : (
           <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
             <p className="text-sm text-blue-800">
-              <strong>Professional View:</strong> You can see only the students assigned to you. Contact an administrator if you need access to additional students.
+              <strong>{t('professionalView')}:</strong> {t('professionalViewNotice')}
             </p>
           </div>
         )}
 
         {/* Create Student Form */}
         {showCreateForm && (
-          <div className="card mb-8">
-            <h2 className="text-xl font-semibold mb-4">Create New Student</h2>
+          <div className="card mb-8 bg-gradient-to-br from-pink-100 via-yellow-100 to-blue-100 border-4 border-pink-200 rounded-3xl">
+            <div className="flex justify-center mb-2">
+              <span className="text-3xl">🧑‍🎓</span>
+            </div>
+            <h2 className="text-xl font-extrabold text-pink-600 mb-4 text-center drop-shadow">{t('createNewStudent')}</h2>
             <form onSubmit={handleCreateStudent} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Student Name *
+                  {t('studentName')} *
                 </label>
                 <input
                   type="text"
@@ -402,14 +387,14 @@ export default function StudentsPage() {
                   value={createForm.name}
                   onChange={handleCreateFormChange}
                   className="input-field"
-                  placeholder="Enter student name"
+                  placeholder={t('enterStudentName')}
                   required
                 />
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Date of Birth *
+                  {t('dateOfBirth')} *
                 </label>
                 <input
                   type="date"
@@ -422,7 +407,7 @@ export default function StudentsPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Ministry Code
+                  {t('ministryCode')}
                 </label>
                 <input
                   type="text"
@@ -430,20 +415,20 @@ export default function StudentsPage() {
                   value={createForm.ministryCode}
                   onChange={handleCreateFormChange}
                   className="input-field"
-                  placeholder="Enter ministry code (optional)"
+                  placeholder={t('enterMinistryCodeOptional')}
                 />
               </div>
               
               <div className="flex gap-4">
                 <button type="submit" className="btn-primary">
-                  Create Student
+                  <span className="text-lg">🎈 {t('createStudent')}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowCreateForm(false)}
-                  className="btn-secondary"
+                  className="btn-secondary text-lg px-4 py-2 rounded-full shadow-md"
                 >
-                  Cancel
+                  <span className="text-lg">❌ {t('cancel')}</span>
                 </button>
               </div>
             </form>
@@ -451,15 +436,18 @@ export default function StudentsPage() {
         )}
 
         {/* Students List */}
-        <div className="card">
-          <h2 className="text-xl font-semibold mb-4">
-            {user?.isAdmin ? 'All Students' : 'My Assigned Students'}
+        <div className="card bg-gradient-to-br from-blue-100 via-pink-100 to-yellow-100 border-4 border-blue-200 rounded-3xl">
+          <div className="flex justify-center mb-2">
+            <span className="text-3xl">👦👧</span>
+          </div>
+          <h2 className="text-xl font-extrabold text-blue-600 mb-4 text-center drop-shadow">
+            {user?.isAdmin ? t('allStudents') : t('myAssignedStudents')}
           </h2>
           {/* Intelligent Search Bar */}
           <div className="mb-4 relative">
             <input
               type="text"
-              placeholder="Search by name, ministry code, assigned professional, or creator..."
+              placeholder={t('searchStudentsPlaceholder')}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               className="input-field w-full pl-10"
@@ -471,29 +459,28 @@ export default function StudentsPage() {
             </div>
             {searchQuery && (
               <div className="mt-2 text-sm text-gray-600">
-                Found {filteredStudents.length} student{filteredStudents.length !== 1 ? 's' : ''} matching "{searchQuery}"
+                {t('foundStudents', { count: filteredStudents.length, query: searchQuery })}
               </div>
             )}
           </div>
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-              <p className="mt-2 text-gray-600">Loading students...</p>
+              <p className="mt-2 text-gray-600">{t('loadingStudents')}</p>
             </div>
           ) : filteredStudents.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-gray-600">
                 {searchQuery
-                  ? `No students found matching "${searchQuery}". Try a different search term.`
+                  ? t('noStudentsFoundMatching', { query: searchQuery })
                   : (user?.isAdmin
-                    ? 'No students found in the system. This could mean: 1) No students have been created yet, 2) There is a database connection issue, or 3) There is an authentication problem. Check the browser console for debugging information.'
-                    : 'No students are currently assigned to you. Contact an administrator to request student assignments.'
-                  )}
+                    ? t('noStudentsFoundAdmin')
+                    : t('noStudentsAssigned'))}
               </p>
               {user?.isAdmin && !searchQuery && (
                 <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
                   <p className="text-sm text-yellow-800">
-                    <strong>Debug Info:</strong> User ID: {user?.id}, Role: {user?.role}, isAdmin: {user?.isAdmin?.toString()}
+                    <strong>{t('debugInfo')}:</strong> {t('userId')}: {user?.id}, {t('role')}: {user?.role}, {t('isAdmin')}: {user?.isAdmin?.toString()}
                   </p>
                 </div>
               )}
@@ -504,16 +491,16 @@ export default function StudentsPage() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Name
+                      {t('name')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date of Birth
+                      {t('dateOfBirth')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Assigned Professionals
+                      {t('assignedProfessionals')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
+                      {t('actions')}
                     </th>
                   </tr>
                 </thead>
@@ -532,7 +519,7 @@ export default function StudentsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
-                          {student.assignedUsers?.length || 0} professionals
+                          {student.assignedUsers?.length || 0} {t('professionals')}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -540,14 +527,14 @@ export default function StudentsPage() {
                           onClick={() => handleViewDetails(student)}
                           className="text-primary-600 hover:text-primary-900 mr-4"
                         >
-                          View Details
+                          {t('viewDetails')}
                         </button>
                         {canAssignProfessionals && (
                           <button 
                             onClick={() => handleAssignProfessionals(student)}
                             className="text-primary-600 hover:text-primary-900"
                           >
-                            Assign Users
+                            {t('assignUsers')}
                           </button>
                         )}
                         {(user?.isAdmin || (student.createdBy && student.createdBy._id === user.id)) && (
@@ -555,7 +542,7 @@ export default function StudentsPage() {
                             onClick={() => handleDeleteStudent(student._id)}
                             className="text-red-600 hover:text-red-900 ml-4"
                           >
-                            Delete
+                            {t('delete')}
                           </button>
                         )}
                       </td>
@@ -572,19 +559,18 @@ export default function StudentsPage() {
           <div className="mt-8">
             <div className="card">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Unassigned Students</h2>
+                <h2 className="text-xl font-semibold">{t('unassignedStudents')}</h2>
                 <button
                   onClick={() => setShowUnassignedStudents(!showUnassignedStudents)}
                   className="text-primary-600 hover:text-primary-900 text-sm"
                 >
-                  {showUnassignedStudents ? 'Hide' : 'Show'} Unassigned Students
+                  {showUnassignedStudents ? t('hideUnassignedStudents') : t('showUnassignedStudents')}
                 </button>
               </div>
               
               <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
                 <p className="text-sm text-blue-800">
-                  <strong>Note:</strong> These are students that were created but not assigned to any parent. 
-                  If you created any of these students before the recent update, you can claim them by clicking "Claim Student".
+                  <strong>{t('note')}:</strong> {t('unassignedStudentsNotice')}
                 </p>
               </div>
 
@@ -593,11 +579,11 @@ export default function StudentsPage() {
                   {loadingUnassigned ? (
                     <div className="text-center py-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-                      <p className="mt-2 text-gray-600">Loading unassigned students...</p>
+                      <p className="mt-2 text-gray-600">{t('loadingUnassignedStudents')}</p>
                     </div>
                   ) : unassignedStudents.length === 0 ? (
                     <div className="text-center py-8">
-                      <p className="text-gray-600">No unassigned students found.</p>
+                      <p className="text-gray-600">{t('noUnassignedStudentsFound')}</p>
                     </div>
                   ) : (
                     <div className="overflow-x-auto">
@@ -605,16 +591,16 @@ export default function StudentsPage() {
                         <thead className="bg-gray-50">
                           <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Name
+                              {t('name')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Date of Birth
+                              {t('dateOfBirth')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Created
+                              {t('created')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Actions
+                              {t('actions')}
                             </th>
                           </tr>
                         </thead>
@@ -641,13 +627,13 @@ export default function StudentsPage() {
                                   onClick={() => handleClaimStudent(student._id)}
                                   className="text-green-600 hover:text-green-900 mr-4"
                                 >
-                                  Claim Student
+                                  {t('claimStudent')}
                                 </button>
                                 <button 
                                   onClick={() => handleViewDetails(student)}
                                   className="text-primary-600 hover:text-primary-900"
                                 >
-                                  View Details
+                                  {t('viewDetails')}
                                 </button>
                               </td>
                             </tr>
@@ -661,27 +647,27 @@ export default function StudentsPage() {
             </div>
           </div>
         )}
-      </main>
+      </div>
 
       {/* Student Details Modal */}
       {showDetailsModal && selectedStudent && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
           <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Student Details</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('studentDetails')}</h3>
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Name</label>
+                  <label className="block text-sm font-medium text-gray-700">{t('name')}</label>
                   <p className="text-sm text-gray-900">{selectedStudent.name}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Date of Birth</label>
+                  <label className="block text-sm font-medium text-gray-700">{t('dateOfBirth')}</label>
                   <p className="text-sm text-gray-900">
                     {new Date(selectedStudent.dateOfBirth).toLocaleDateString()}
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Assigned Professionals</label>
+                  <label className="block text-sm font-medium text-gray-700">{t('assignedProfessionals')}</label>
                   {selectedStudent.assignedUsers && selectedStudent.assignedUsers.length > 0 ? (
                     <ul className="text-sm text-gray-900 mt-1">
                       {selectedStudent.assignedUsers.map((user) => (
@@ -692,11 +678,11 @@ export default function StudentsPage() {
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-sm text-gray-500">No professionals assigned</p>
+                    <p className="text-sm text-gray-500">{t('noProfessionalsAssigned')}</p>
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Created</label>
+                  <label className="block text-sm font-medium text-gray-700">{t('created')}</label>
                   <p className="text-sm text-gray-900">
                     {new Date(selectedStudent.createdAt).toLocaleDateString()}
                   </p>
@@ -705,7 +691,7 @@ export default function StudentsPage() {
                 {selectedStudent.ministryCode && 
                   (user?.isAdmin || (selectedStudent.createdBy && selectedStudent.createdBy._id === user.id)) && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Ministry Code</label>
+                      <label className="block text-sm font-medium text-gray-700">{t('ministryCode')}</label>
                       <p className="text-sm text-gray-900">{selectedStudent.ministryCode}</p>
                     </div>
                   )}
@@ -714,7 +700,7 @@ export default function StudentsPage() {
                     onClick={() => handleDeleteStudent(selectedStudent._id)}
                     className="btn-danger w-full mt-4"
                   >
-                    Delete Student
+                    {t('deleteStudent')}
                   </button>
                 )}
               </div>
@@ -723,7 +709,7 @@ export default function StudentsPage() {
                   onClick={() => setShowDetailsModal(false)}
                   className="btn-primary w-full"
                 >
-                  Close
+                  {t('close')}
                 </button>
               </div>
             </div>
@@ -737,13 +723,13 @@ export default function StudentsPage() {
           <div className="relative top-10 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white max-h-[80vh] overflow-y-auto">
             <div className="mt-3">
               <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Assign Users to {selectedStudent.name}
+                {t('assignUsersTo', { name: selectedStudent.name })}
               </h3>
               
               {loadingProfessionals ? (
                 <div className="text-center py-4">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mx-auto"></div>
-                  <p className="mt-2 text-sm text-gray-600">Loading professionals...</p>
+                  <p className="mt-2 text-sm text-gray-600">{t('loadingProfessionals')}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -773,7 +759,7 @@ export default function StudentsPage() {
                   className="btn-primary flex-1"
                   disabled={loadingProfessionals}
                 >
-                  Assign Selected
+                  {t('assignSelected')}
                 </button>
                 <button
                   onClick={() => {
@@ -783,13 +769,13 @@ export default function StudentsPage() {
                   }}
                   className="btn-secondary flex-1"
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
               </div>
             </div>
           </div>
         </div>
       )}
-    </div>
-  )
+    </DashboardLayout>
+  );
 } 

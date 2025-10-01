@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import CourseAccessRequest from '../../../components/CourseAccessRequest'
+import { useLanguage } from '../../../contexts/LanguageContext';
+import DashboardLayout from '../DashboardLayout';
 
 interface Course {
   _id: string
@@ -53,6 +55,7 @@ const courseCategories = [
 ]
 
 export default function CoursesPage() {
+  const { t } = useLanguage();
   const [courses, setCourses] = useState<Course[]>([])
   const [myProgress, setMyProgress] = useState<CourseProgress[]>([])
   const [loading, setLoading] = useState(true)
@@ -107,13 +110,13 @@ export default function CoursesPage() {
       if (filterPublished !== '') params.append('isPublished', filterPublished)
 
       const response = await axios.get(
-        `https://autism-support-platform-production.up.railway.app/api/courses/?${params.toString()}`,
+        `http://localhost:5000/api/courses/?${params.toString()}`,
         { headers: getAuthHeaders() }
       )
       setCourses(response.data)
     } catch (error: any) {
       console.error('Error loading courses:', error)
-      toast.error('Failed to load courses')
+      toast.error(t('failedToLoadCourses'))
     } finally {
       setLoading(false)
     }
@@ -123,7 +126,7 @@ export default function CoursesPage() {
   const loadMyProgress = async () => {
     try {
       const response = await axios.get(
-        'https://autism-support-platform-production.up.railway.app/api/courses/progress/user',
+        'http://localhost:5000/api/courses/progress/user',
         { headers: getAuthHeaders() }
       )
       setMyProgress(response.data)
@@ -142,7 +145,7 @@ export default function CoursesPage() {
     e.preventDefault()
     
     if (!createForm.title || !createForm.description) {
-      toast.error('Please fill in all required fields')
+      toast.error(t('pleaseFillRequiredFields'))
       return
     }
 
@@ -153,12 +156,12 @@ export default function CoursesPage() {
       }
 
       const response = await axios.post(
-        'https://autism-support-platform-production.up.railway.app/api/courses/',
+        'http://localhost:5000/api/courses/',
         courseData,
         { headers: getAuthHeaders() }
       )
       
-      toast.success('Course created successfully!')
+      toast.success(t('courseCreatedSuccessfully'))
       setShowCreateForm(false)
       setCreateForm({ 
         title: '', 
@@ -171,7 +174,7 @@ export default function CoursesPage() {
       })
       loadCourses()
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to create course'
+      const message = error.response?.data?.message || t('failedToCreateCourse')
       toast.error(message)
     }
   }
@@ -180,14 +183,14 @@ export default function CoursesPage() {
   const handleEnroll = async (courseId: string) => {
     try {
       await axios.post(
-        `https://autism-support-platform-production.up.railway.app/api/courses/${courseId}/enroll`,
+        `http://localhost:5000/api/courses/${courseId}/enroll`,
         {},
         { headers: getAuthHeaders() }
       )
-      toast.success('Enrolled successfully!')
+      toast.success(t('enrolledSuccessfully'))
       loadMyProgress()
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to enroll'
+      const message = error.response?.data?.message || t('failedToEnroll')
       toast.error(message)
     }
   }
@@ -196,14 +199,14 @@ export default function CoursesPage() {
   const handleUpdateProgress = async (courseId: string, progress: number, isCompleted: boolean = false) => {
     try {
       await axios.put(
-        `https://autism-support-platform-production.up.railway.app/api/courses/${courseId}/progress`,
+        `http://localhost:5000/api/courses/${courseId}/progress`,
         { progress, isCompleted },
         { headers: getAuthHeaders() }
       )
-      toast.success('Progress updated!')
+      toast.success(t('progressUpdated'))
       loadMyProgress()
     } catch (error: any) {
-      toast.error('Failed to update progress')
+      toast.error(t('failedToUpdateProgress'))
     }
   }
 
@@ -211,14 +214,14 @@ export default function CoursesPage() {
   const handleTogglePublish = async (courseId: string) => {
     try {
       await axios.put(
-        `https://autism-support-platform-production.up.railway.app/api/courses/${courseId}/publish`,
+        `http://localhost:5000/api/courses/${courseId}/publish`,
         {},
         { headers: getAuthHeaders() }
       )
-      toast.success('Course status updated!')
+      toast.success(t('courseStatusUpdated'))
       loadCourses()
     } catch (error: any) {
-      toast.error('Failed to update course status')
+      toast.error(t('failedToUpdateCourseStatus'))
     }
   }
 
@@ -232,7 +235,7 @@ export default function CoursesPage() {
   // Upload thumbnail image
   const handleThumbnailUpload = async () => {
     if (!thumbnailFile) {
-      toast.error('Please select a thumbnail image')
+      toast.error(t('pleaseSelectThumbnailImage'))
       return
     }
 
@@ -242,7 +245,7 @@ export default function CoursesPage() {
       formData.append('thumbnail', thumbnailFile)
 
       const response = await axios.post(
-        'https://autism-support-platform-production.up.railway.app/api/courses/upload/thumbnail',
+        'http://localhost:5000/api/courses/upload/thumbnail',
         formData,
         { 
           headers: {
@@ -256,9 +259,9 @@ export default function CoursesPage() {
         ...prev,
         thumbnailUrl: response.data.thumbnailUrl
       }))
-      toast.success('Thumbnail uploaded successfully!')
+      toast.success(t('thumbnailUploadedSuccessfully'))
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to upload thumbnail'
+      const message = error.response?.data?.message || t('failedToUploadThumbnail')
       toast.error(message)
     } finally {
       setUploadingThumbnail(false)
@@ -279,54 +282,36 @@ export default function CoursesPage() {
     return myProgress.some(p => p.course._id === courseId)
   }
 
-  if (!userLoaded) return null;
-
+  if (!userLoaded || !user) return null;
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/';
+  };
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">
-                Training Courses
-              </h1>
-            </div>
-            {isTrainer && (
-              <a
-                href="/dashboard/courses/builder"
-                className="btn-primary"
-              >
-                Create Course
-              </a>
-            )}
-          </div>
-        </div>
-      </header>
-
+    <DashboardLayout user={user} handleLogout={handleLogout}>
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Notice for non-trainers */}
         {!isTrainer && (
           <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
             <p className="text-sm text-blue-800">
-              <strong>Note:</strong> Only trainers (Specialist Educators) can create and manage courses. 
-              You can browse and enroll in existing courses below.
+              <strong>{t('note')}:</strong> {t('onlyTrainersCoursesNotice')}
             </p>
           </div>
         )}
 
         {/* Search and Filter Section */}
         <div className="card mb-8">
-          <h2 className="text-xl font-semibold mb-4">Search & Filter Courses</h2>
+          <h2 className="text-xl font-semibold mb-4">{t('searchFilterCourses')}</h2>
           <div className="grid md:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Search by Title
+                {t('searchByTitle')}
               </label>
               <input
                 type="text"
-                placeholder="Enter course title"
+                placeholder={t('enterCourseTitle')}
                 value={searchTitle}
                 onChange={(e) => setSearchTitle(e.target.value)}
                 className="input-field"
@@ -335,14 +320,14 @@ export default function CoursesPage() {
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Category
+                {t('category')}
               </label>
               <select
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
                 className="input-field"
               >
-                <option value="">All Categories</option>
+                <option value="">{t('allCategories')}</option>
                 {courseCategories.map((category) => (
                   <option key={category} value={category}>
                     {category.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
@@ -353,16 +338,16 @@ export default function CoursesPage() {
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Status
+                {t('status')}
               </label>
               <select
                 value={filterPublished}
                 onChange={(e) => setFilterPublished(e.target.value)}
                 className="input-field"
               >
-                <option value="">All Courses</option>
-                <option value="true">Published Only</option>
-                <option value="false">Draft Only</option>
+                <option value="">{t('allCourses')}</option>
+                <option value="true">{t('publishedOnly')}</option>
+                <option value="false">{t('draftOnly')}</option>
               </select>
             </div>
             
@@ -371,7 +356,7 @@ export default function CoursesPage() {
                 onClick={clearFilters}
                 className="btn-secondary w-full"
               >
-                Clear Filters
+                {t('clearFilters')}
               </button>
             </div>
           </div>
@@ -380,45 +365,49 @@ export default function CoursesPage() {
         {/* My Courses Section */}
         {myProgress.length > 0 && (
           <div className="card mb-8">
-            <h2 className="text-xl font-semibold mb-4">My Courses</h2>
+            <h2 className="text-xl font-semibold mb-4">{t('myCourses')}</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {myProgress.map((progress) => (
-                <div key={progress.course._id} className="card hover:shadow-lg transition-shadow">
-                  {/* Thumbnail */}
+                <div key={progress.course._id} className="card hover:shadow-xl transition-shadow bg-gradient-to-br from-pink-100 via-yellow-100 to-blue-100 border-4 border-pink-200 rounded-3xl">
+                  {/* Thumbnail with playful border */}
                   {progress.course.thumbnailUrl && (
-                    <div className="mb-3 relative">
+                    <div className="mb-3 relative flex justify-center">
                       <img 
                         src={progress.course.thumbnailUrl} 
                         alt={progress.course.title}
-                        className="w-full h-32 object-cover rounded-lg"
+                        className="w-28 h-28 object-cover rounded-full border-4 border-blue-200 shadow-lg"
                       />
                     </div>
                   )}
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                  {/* Add a fun icon for each course */}
+                  <div className="flex justify-center mb-2">
+                    <span className="text-3xl">🎉</span>
+                  </div>
+                  <h3 className="text-xl font-extrabold text-pink-600 mb-1 text-center drop-shadow">
                     {progress.course.title}
                   </h3>
-                  <p className="text-gray-600 text-sm mb-2 line-clamp-2">
+                  <p className="text-blue-600 text-base mb-2 line-clamp-2 text-center">
                     {progress.course.description}
                   </p>
                   <div className="mb-2">
-                    <div className="flex justify-between text-xs text-gray-600 mb-1">
-                      <span>Progress</span>
+                    <div className="flex justify-between text-xs text-blue-600 mb-1">
+                      <span>{t('progress')}</span>
                       <span>{progress.progress}%</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-yellow-200 rounded-full h-3">
                       <div
-                        className="bg-primary-600 h-2 rounded-full transition-all duration-300"
+                        className="bg-pink-400 h-3 rounded-full transition-all duration-300"
                         style={{ width: `${progress.progress}%` }}
                       ></div>
                     </div>
                   </div>
                   <button
-                    className="btn-primary w-full mt-2"
+                    className="btn-primary w-full mt-2 text-lg font-bold rounded-full shadow-md hover:bg-pink-500 transition-colors"
                     onClick={() => {
                       window.location.href = `/dashboard/course-player/${progress.course._id}`
                     }}
                   >
-                    Continue
+                    🚀 {t('continue')}
                   </button>
                 </div>
               ))}
@@ -429,20 +418,20 @@ export default function CoursesPage() {
         {/* Courses List */}
         <div className="card">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Available Courses</h2>
+            <h2 className="text-xl font-semibold">{t('availableCourses')}</h2>
             <span className="text-sm text-gray-600">
-              {courses.filter(course => course.isPublished || (user && user.id === course.createdBy._id)).length} course{courses.filter(course => course.isPublished || (user && user.id === course.createdBy._id)).length !== 1 ? 's' : ''} found
+              {courses.filter(course => course.isPublished || (user && user.id === course.createdBy._id)).length} {t('course', { count: courses.filter(course => course.isPublished || (user && user.id === course.createdBy._id)).length })}{courses.filter(course => course.isPublished || (user && user.id === course.createdBy._id)).length !== 1 ? t('pluralS') : ''} {t('found')}
             </span>
           </div>
           
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-              <p className="mt-2 text-gray-600">Loading courses...</p>
+              <p className="mt-2 text-gray-600">{t('loadingCourses')}</p>
             </div>
           ) : courses.filter(course => course.isPublished || (user && user.id === course.createdBy._id)).length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-600">No courses found. Try adjusting your search criteria or create a new course.</p>
+              <p className="text-gray-600">{t('noCoursesFound')}</p>
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -450,78 +439,79 @@ export default function CoursesPage() {
                 const enrolled = isEnrolled(course._id);
                 const progress = getMyProgress(course._id);
                 return (
-                  <div key={course._id} className="card hover:shadow-lg transition-shadow">
-                    {/* Video Thumbnail */}
+                  <div key={course._id} className="card hover:shadow-xl transition-shadow bg-gradient-to-br from-blue-100 via-pink-100 to-yellow-100 border-4 border-blue-200 rounded-3xl">
+                    {/* Video Thumbnail with playful border */}
                     {course.thumbnailUrl && (
-                      <div className="mb-3 relative">
+                      <div className="mb-3 relative flex justify-center">
                         <img 
                           src={course.thumbnailUrl} 
                           alt={course.title}
-                          className="w-full h-32 object-cover rounded-lg"
+                          className="w-28 h-28 object-cover rounded-full border-4 border-pink-200 shadow-lg"
                         />
                         {course.courseType === 'video' && (
-                          <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs">
-                            🎥 Video Course
+                          <div className="absolute top-2 right-2 bg-yellow-300 bg-opacity-80 text-blue-900 px-2 py-1 rounded-full text-xs shadow">
+                            🎥 {t('videoCourse')}
                           </div>
                         )}
                       </div>
                     )}
-                    
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">
+                    {/* Add a fun icon for each course */}
+                    <div className="flex justify-center mb-2">
+                      <span className="text-3xl">🌈</span>
+                    </div>
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="text-xl font-extrabold text-blue-600 drop-shadow">
                         {course.title}
                       </h3>
                       <div className="flex gap-2">
                         {course.courseType === 'video' && (
-                          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                            🎥 Video
+                          <span className="text-xs bg-blue-200 text-blue-900 px-2 py-1 rounded-full shadow">
+                            🎥 {t('video')}
                           </span>
                         )}
                         {course.courseType === 'mixed' && (
-                          <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">
-                            📚 Mixed
+                          <span className="text-xs bg-pink-200 text-pink-900 px-2 py-1 rounded-full shadow">
+                            📚 {t('mixed')}
                           </span>
                         )}
                         {!course.isPublished && (
-                          <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                            Draft
+                          <span className="text-xs bg-yellow-200 text-yellow-900 px-2 py-1 rounded-full shadow">
+                            {t('draft')}
                           </span>
                         )}
                         {enrolled && (
-                          <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                            Enrolled
+                          <span className="text-xs bg-green-200 text-green-900 px-2 py-1 rounded-full shadow">
+                            {t('enrolled')}
                           </span>
                         )}
                       </div>
                     </div>
-                    
-                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                    <p className="text-pink-600 text-base mb-3 line-clamp-2 text-center">
                       {course.description}
                     </p>
-                    
                     <div className="space-y-2 mb-4">
                       {course.category && (
-                        <div className="text-xs text-gray-500">
-                          Category: {course.category.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                        <div className="text-xs text-blue-500">
+                          {t('category')}: {course.category.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
                         </div>
                       )}
                       {course.duration > 0 && (
-                        <div className="text-xs text-gray-500">
-                          Duration: {course.duration} minutes
+                        <div className="text-xs text-pink-500">
+                          {t('duration')}: {course.duration} {t('minutes')}
                         </div>
                       )}
-                      <div className="text-xs text-gray-500">
-                        By: {course.createdBy.name} ({course.createdBy.role.replace('_', ' ')})
+                      <div className="text-xs text-blue-500">
+                        {t('by')}: {course.createdBy.name} ({course.createdBy.role.replace('_', ' ')})
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-pink-500">
                         {new Date(course.createdAt).toLocaleDateString()}
                       </div>
                       {/* Pricing Information */}
                       <div className="text-xs">
                         {course.isFree ? (
-                          <span className="text-green-600 font-medium">🆓 Free Course</span>
+                          <span className="text-green-600 font-bold">🆓 {t('freeCourse')}</span>
                         ) : (
-                          <span className="text-blue-600 font-medium">💰 ${course.price} USD</span>
+                          <span className="text-blue-600 font-bold">💰 ${course.price} USD</span>
                         )}
                       </div>
                     </div>
@@ -529,20 +519,20 @@ export default function CoursesPage() {
                     {/* Progress Bar for Enrolled Users */}
                     {enrolled && progress && (
                       <div className="mb-4">
-                        <div className="flex justify-between text-xs text-gray-600 mb-1">
-                          <span>Progress</span>
+                        <div className="flex justify-between text-xs text-blue-600 mb-1">
+                          <span>{t('progress')}</span>
                           <span>{progress.progress}%</span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="w-full bg-yellow-200 rounded-full h-3">
                           <div
-                            className="bg-primary-600 h-2 rounded-full transition-all duration-300"
+                            className="bg-pink-400 h-3 rounded-full transition-all duration-300"
                             style={{ width: `${progress.progress}%` }}
                           ></div>
                         </div>
                       </div>
                     )}
-                    
-                    <div className="flex gap-2">
+
+                    <div className="flex gap-2 flex-wrap justify-center">
                       {!enrolled && course.isPublished ? (
                         <CourseAccessRequest
                           courseId={course._id}
@@ -554,37 +544,37 @@ export default function CoursesPage() {
                       ) : enrolled ? (
                         <button
                           onClick={() => handleUpdateProgress(course._id, Math.min(100, (progress?.progress || 0) + 25))}
-                          className="btn-primary text-sm px-3 py-1"
+                          className="btn-primary text-lg px-4 py-2 rounded-full shadow-md"
                         >
-                          Update Progress
+                          🎯 {t('updateProgress')}
                         </button>
                       ) : null}
-                      
+
                       {isTrainer && user && user.id === course.createdBy._id && (
                         <button
                           onClick={() => handleTogglePublish(course._id)}
-                          className="btn-secondary text-sm px-3 py-1"
+                          className="btn-secondary text-lg px-4 py-2 rounded-full shadow-md"
                         >
-                          {course.isPublished ? 'Unpublish' : 'Publish'}
+                          {course.isPublished ? t('unpublish') : t('publish')}
                         </button>
                       )}
-                      
+
                       <button 
                         onClick={() => {
                           setSelectedCourse(course)
                           setShowCourseModal(true)
                         }}
-                        className="btn-secondary text-sm px-3 py-1"
+                        className="btn-secondary text-lg px-4 py-2 rounded-full shadow-md"
                       >
-                        View Details
+                        🧐 {t('viewDetails')}
                       </button>
                       {user && user.id === course.createdBy._id && (
                         <a
                           href={`/dashboard/courses/builder/${course._id}`}
-                          className="btn-primary text-sm px-3 py-1"
+                          className="btn-primary text-lg px-4 py-2 rounded-full shadow-md"
                           style={{ textDecoration: 'none' }}
                         >
-                          Builder
+                          🛠️ {t('builder')}
                         </a>
                       )}
                     </div>
@@ -598,25 +588,25 @@ export default function CoursesPage() {
         {/* My Progress Summary */}
         {myProgress.length > 0 && (
           <div className="card mt-8">
-            <h3 className="text-lg font-semibold mb-4">My Learning Progress</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('myLearningProgress')}</h3>
             <div className="grid md:grid-cols-3 gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-primary-600">
                   {myProgress.length}
                 </div>
-                <div className="text-sm text-gray-600">Enrolled Courses</div>
+                <div className="text-sm text-gray-600">{t('enrolledCourses')}</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600">
                   {myProgress.filter(p => p.isCompleted).length}
                 </div>
-                <div className="text-sm text-gray-600">Completed</div>
+                <div className="text-sm text-gray-600">{t('completed')}</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600">
                   {Math.round(myProgress.reduce((sum, p) => sum + p.progress, 0) / myProgress.length)}%
                 </div>
-                <div className="text-sm text-gray-600">Average Progress</div>
+                <div className="text-sm text-gray-600">{t('averageProgress')}</div>
               </div>
             </div>
           </div>
@@ -650,17 +640,17 @@ export default function CoursesPage() {
                       poster={selectedCourse.thumbnailUrl}
                       onError={(e) => {
                         console.error('Video loading error:', e);
-                        toast.error('Failed to load video. Please check the video URL or try again later.');
+                        toast.error(t('failedToLoadVideo'));
                       }}
                     >
                       <source src={selectedCourse.videoUrl} type="video/mp4" />
                       <source src={selectedCourse.videoUrl} type="video/webm" />
                       <source src={selectedCourse.videoUrl} type="video/ogg" />
-                      Your browser does not support the video tag.
+                      {t('browserNoVideoSupport')}
                     </video>
                     {selectedCourse.videoUrl && (
                       <p className="text-sm text-gray-600 mt-2">
-                        Video URL: {selectedCourse.videoUrl}
+                        {t('videoUrl')}: {selectedCourse.videoUrl}
                       </p>
                     )}
                   </div>
@@ -669,30 +659,30 @@ export default function CoursesPage() {
                 {/* Course Info */}
                 <div className="grid md:grid-cols-2 gap-6 mb-6">
                   <div>
-                    <h3 className="text-lg font-semibold mb-2">Course Information</h3>
+                    <h3 className="text-lg font-semibold mb-2">{t('courseInformation')}</h3>
                     <div className="space-y-2 text-sm">
-                      <p><strong>Description:</strong> {selectedCourse.description}</p>
+                      <p><strong>{t('description')}:</strong> {selectedCourse.description}</p>
                       {selectedCourse.category && (
-                        <p><strong>Category:</strong> {selectedCourse.category.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</p>
+                        <p><strong>{t('category')}:</strong> {selectedCourse.category.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</p>
                       )}
                       {selectedCourse.duration > 0 && (
-                        <p><strong>Duration:</strong> {selectedCourse.duration} minutes</p>
+                        <p><strong>{t('duration')}:</strong> {selectedCourse.duration} {t('minutes')}</p>
                       )}
-                      <p><strong>Type:</strong> {selectedCourse.courseType ? selectedCourse.courseType.charAt(0).toUpperCase() + selectedCourse.courseType.slice(1) : "N/A"}</p>
-                      <p><strong>Pricing:</strong> {selectedCourse.isFree ? '🆓 Free Course' : `💰 $${selectedCourse.price} USD`}</p>
-                      <p><strong>Created by:</strong> {selectedCourse.createdBy.name}</p>
-                      <p><strong>Created:</strong> {new Date(selectedCourse.createdAt).toLocaleDateString()}</p>
+                      <p><strong>{t('type')}:</strong> {selectedCourse.courseType ? selectedCourse.courseType.charAt(0).toUpperCase() + selectedCourse.courseType.slice(1) : t('na')}</p>
+                      <p><strong>{t('pricing')}:</strong> {selectedCourse.isFree ? t('freeCourse') : `💰 $${selectedCourse.price} USD`}</p>
+                      <p><strong>{t('createdBy')}:</strong> {selectedCourse.createdBy.name}</p>
+                      <p><strong>{t('created')}:</strong> {new Date(selectedCourse.createdAt).toLocaleDateString()}</p>
                     </div>
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-semibold mb-2">Course Content</h3>
+                    <h3 className="text-lg font-semibold mb-2">{t('courseContent')}</h3>
                     {selectedCourse.content ? (
                       <div className="bg-gray-50 p-4 rounded-lg">
                         <p className="whitespace-pre-wrap text-sm">{selectedCourse.content}</p>
                       </div>
                     ) : (
-                      <p className="text-gray-500 text-sm">No additional content provided.</p>
+                      <p className="text-gray-500 text-sm">{t('noAdditionalContent')}</p>
                     )}
                   </div>
                 </div>
@@ -707,7 +697,7 @@ export default function CoursesPage() {
                       }}
                       className="btn-primary"
                     >
-                      Enroll in Course
+                      {t('enrollInCourse')}
                     </button>
                   ) : isEnrolled(selectedCourse._id) ? (
                     <button
@@ -720,7 +710,7 @@ export default function CoursesPage() {
                       }}
                       className="btn-primary"
                     >
-                      Update Progress
+                      {t('updateProgress')}
                     </button>
                   ) : null}
                   
@@ -728,14 +718,14 @@ export default function CoursesPage() {
                     onClick={() => setShowCourseModal(false)}
                     className="btn-secondary"
                   >
-                    Close
+                    {t('close')}
                   </button>
                 </div>
               </div>
             </div>
           </div>
         )}
-      </main>
-    </div>
-  )
+      </div>
+    </DashboardLayout>
+  );
 } 

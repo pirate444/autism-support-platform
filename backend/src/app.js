@@ -27,23 +27,64 @@ if (!fs.existsSync(avatarsDir)) {
 // CORS configuration for both development and production
 const allowedOrigins = [
   'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:3001',
+  'http://127.0.0.1:3002',
   'https://autism-support-platform.vercel.app',
   'https://autism-support-platform.netlify.app'
 ];
 
-app.use(cors({ 
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
+// For development, you can set this environment variable to allow all origins
+const isDevelopment = process.env.NODE_ENV === 'development' || process.env.ALLOW_ALL_ORIGINS === 'true';
+
+if (isDevelopment) {
+  // More permissive CORS for development
+  app.use(cors({ 
+    origin: function (origin, callback) {
+      console.log('🌐 CORS request from origin:', origin);
+      
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) {
+        console.log('✅ Allowing request with no origin');
+        return callback(null, true);
+      }
+      
+      // Allow all localhost and 127.0.0.1 origins in development
+      if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+        console.log('✅ Allowing localhost origin:', origin);
+        return callback(null, true);
+      }
+      
+      // Allow all origins in development mode
+      console.log('✅ Development mode: allowing origin:', origin);
       callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true 
-}));
+    },
+    credentials: true 
+  }));
+  console.log('🔓 Development mode: CORS allows all origins');
+} else {
+  // Strict CORS for production
+  app.use(cors({ 
+    origin: function (origin, callback) {
+      console.log('🌐 CORS request from origin:', origin);
+      
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        console.log('✅ Allowing production origin:', origin);
+        callback(null, true);
+      } else {
+        console.log('❌ CORS blocked origin:', origin);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true 
+  }));
+  console.log('🔒 Production mode: CORS restricted to allowed origins');
+}
 app.use(express.json());
 app.use(helmet());
 
@@ -110,6 +151,14 @@ app.use('/api/notifications', notificationRoutes);
 // Import course access routes
 const courseAccessRoutes = require('./routes/courseAccess');
 app.use('/api/course-access', courseAccessRoutes);
+
+// Import language routes
+const languageRoutes = require('./routes/language');
+app.use('/api/language', languageRoutes);
+
+// Import post routes
+const postRoutes = require('./routes/post');
+app.use('/api/posts', postRoutes);
 
 // Set CORS headers for all /uploads responses, including range requests
 app.use('/uploads', (req, res, next) => {
