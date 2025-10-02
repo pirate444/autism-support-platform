@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
+import { apiUrl, getAuthHeaders } from '../../../utils/api';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import DashboardLayout from '../DashboardLayout';
 
@@ -100,11 +101,10 @@ export default function StudentsPage() {
       console.log('Loading students with endpoint:', endpoint, 'User isAdmin:', user?.isAdmin);
       console.log('User data:', user);
       
-      const response = await axios.get(
-  `https://autism-support-platform.onrender.com${endpoint}`,
+      const response = await axios.get<Student[]>(
+        apiUrl(endpoint),
         { headers: getAuthHeaders() }
       )
-      
       console.log('Students loaded:', response.data);
       console.log('Number of students loaded:', response.data.length);
       setStudents(response.data)
@@ -123,8 +123,8 @@ export default function StudentsPage() {
     
     setLoadingUnassigned(true);
     try {
-      const response = await axios.get(
-  'https://autism-support-platform.onrender.com/api/students/unassigned',
+      const response = await axios.get<Student[]>(
+        apiUrl('/api/students/unassigned'),
         { headers: getAuthHeaders() }
       );
       setUnassignedStudents(response.data);
@@ -140,7 +140,7 @@ export default function StudentsPage() {
   const handleClaimStudent = async (studentId: string) => {
     try {
       await axios.post(
-  `https://autism-support-platform.onrender.com/api/students/${studentId}/assign-self`,
+        apiUrl(`/api/students/${studentId}/assign-self`),
         {},
         { headers: getAuthHeaders() }
       );
@@ -193,7 +193,7 @@ export default function StudentsPage() {
     try {
       console.log('Creating student with data:', createForm)
       const response = await axios.post(
-  'https://autism-support-platform.onrender.com/api/students/',
+        apiUrl('/api/students/'),
         createForm,
         { headers: getAuthHeaders() }
       )
@@ -232,8 +232,8 @@ export default function StudentsPage() {
       let users: Professional[] = [];
       if (user?.isAdmin) {
         // Admin: fetch all users, filter out already assigned and ministry_staff
-        const response = await axios.get(
-          'https://autism-support-platform.onrender.com/api/users/',
+        const response = await axios.get<Professional[]>(
+          apiUrl('/api/users/'),
           { headers: getAuthHeaders() }
         );
         // Exclude already assigned and ministry_staff
@@ -243,8 +243,8 @@ export default function StudentsPage() {
         );
       } else {
         // Non-admin: fetch only doctors
-        const response = await axios.get(
-          'https://autism-support-platform.onrender.com/api/doctors/',
+        const response = await axios.get<Professional[]>(
+          apiUrl('/api/doctors/'),
           { headers: getAuthHeaders() }
         );
         users = response.data;
@@ -272,7 +272,7 @@ export default function StudentsPage() {
 
     try {
       const response = await axios.post(
-  `https://autism-support-platform.onrender.com/api/students/${selectedStudent._id}/assign`,
+        apiUrl(`/api/students/${selectedStudent._id}/assign`),
         { userIds: selectedProfessionals },
         { headers: getAuthHeaders() }
       )
@@ -304,7 +304,7 @@ export default function StudentsPage() {
   const handleDeleteStudent = async (studentId: string) => {
     if (!window.confirm(`${t('confirmDeleteStudent')}`)) return;
     try {
-  await axios.delete(`https://autism-support-platform.onrender.com/api/students/${studentId}`, { headers: getAuthHeaders() });
+    await axios.delete(apiUrl(`/api/students/${studentId}`), { headers: getAuthHeaders() });
       toast.success(`${t('studentDeletedSuccessfully')}`);
       setShowDetailsModal(false);
       loadStudents();

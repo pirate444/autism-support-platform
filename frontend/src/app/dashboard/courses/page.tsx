@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
+import { apiUrl, getAuthHeaders } from '../../../utils/api';
 import toast from 'react-hot-toast'
 import CourseAccessRequest from '../../../components/CourseAccessRequest'
 import { useLanguage } from '../../../contexts/LanguageContext';
@@ -92,14 +93,7 @@ export default function CoursesPage() {
 
   const isTrainer = user?.role === 'specialist_educator';
 
-  // Get auth token and user info
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('token')
-    return {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
-  }
+
 
   // Load courses
   const loadCourses = async () => {
@@ -109,8 +103,8 @@ export default function CoursesPage() {
       if (filterCategory) params.append('category', filterCategory)
       if (filterPublished !== '') params.append('isPublished', filterPublished)
 
-      const response = await axios.get(
-  `https://autism-support-platform.onrender.com/api/courses/?${params.toString()}`,
+      const response = await axios.get<Course[]>(
+        apiUrl(`/api/courses/?${params.toString()}`),
         { headers: getAuthHeaders() }
       )
       setCourses(response.data)
@@ -125,8 +119,8 @@ export default function CoursesPage() {
   // Load my progress
   const loadMyProgress = async () => {
     try {
-      const response = await axios.get(
-  'https://autism-support-platform.onrender.com/api/courses/progress/user',
+      const response = await axios.get<CourseProgress[]>(
+        apiUrl('/api/courses/progress/user'),
         { headers: getAuthHeaders() }
       )
       setMyProgress(response.data)
@@ -156,7 +150,7 @@ export default function CoursesPage() {
       }
 
       const response = await axios.post(
-  'https://autism-support-platform.onrender.com/api/courses/',
+        apiUrl('/api/courses/'),
         courseData,
         { headers: getAuthHeaders() }
       )
@@ -183,7 +177,7 @@ export default function CoursesPage() {
   const handleEnroll = async (courseId: string) => {
     try {
       await axios.post(
-  `https://autism-support-platform.onrender.com/api/courses/${courseId}/enroll`,
+        apiUrl(`/api/courses/${courseId}/enroll`),
         {},
         { headers: getAuthHeaders() }
       )
@@ -199,7 +193,7 @@ export default function CoursesPage() {
   const handleUpdateProgress = async (courseId: string, progress: number, isCompleted: boolean = false) => {
     try {
       await axios.put(
-  `https://autism-support-platform.onrender.com/api/courses/${courseId}/progress`,
+        apiUrl(`/api/courses/${courseId}/progress`),
         { progress, isCompleted },
         { headers: getAuthHeaders() }
       )
@@ -214,7 +208,7 @@ export default function CoursesPage() {
   const handleTogglePublish = async (courseId: string) => {
     try {
       await axios.put(
-        `http://localhost:5000/api/courses/${courseId}/publish`,
+        apiUrl(`/api/courses/${courseId}/publish`),
         {},
         { headers: getAuthHeaders() }
       )
@@ -245,7 +239,7 @@ export default function CoursesPage() {
       formData.append('thumbnail', thumbnailFile)
 
       const response = await axios.post(
-        'http://localhost:5000/api/courses/upload/thumbnail',
+        apiUrl('/api/courses/upload/thumbnail'),
         formData,
         { 
           headers: {
@@ -257,7 +251,7 @@ export default function CoursesPage() {
 
       setCreateForm(prev => ({
         ...prev,
-        thumbnailUrl: response.data.thumbnailUrl
+        thumbnailUrl: (response.data as { thumbnailUrl: string }).thumbnailUrl
       }))
       toast.success(t('thumbnailUploadedSuccessfully'))
     } catch (error: any) {

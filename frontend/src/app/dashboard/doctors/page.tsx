@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
+import { apiUrl, getAuthHeaders } from '../../../utils/api';
 import ChatModal from '../../../components/ChatModal'
 import NotificationBadge from '../../../components/NotificationBadge'
 import DashboardLayout from '../DashboardLayout';
@@ -50,8 +51,8 @@ export default function DoctorsPage() {
   // Load doctors
   const loadDoctors = async () => {
     try {
-      const response = await axios.get(
-  'https://autism-support-platform.onrender.com/api/doctors/',
+      const response = await axios.get<Doctor[]>(
+        apiUrl('/api/doctors/'),
         { headers: getAuthHeaders() }
       )
       
@@ -59,8 +60,8 @@ export default function DoctorsPage() {
       const doctorsWithUnreadCounts = await Promise.all(
         response.data.map(async (doctor: Doctor) => {
           try {
-            const unreadResponse = await axios.get(
-              `https://autism-support-platform.onrender.com/api/messages/unread/count/${doctor._id}`,
+            const unreadResponse = await axios.get<{ unreadCount: number }>(
+              apiUrl(`/api/messages/unread/count/${doctor._id}`),
               { headers: getAuthHeaders() }
             )
             return { ...doctor, unreadCount: unreadResponse.data.unreadCount }

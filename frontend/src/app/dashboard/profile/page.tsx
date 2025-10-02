@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { apiUrl, getAuthHeaders } from '../../../utils/api';
 import DashboardLayout from '../DashboardLayout';
 
 interface UserProfile {
@@ -66,9 +67,10 @@ export default function ProfilePage() {
       setError("");
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get<UserProfile>(`https://autism-support-platform.onrender.com/api/users/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await axios.get<UserProfile>(
+          apiUrl(`/api/users/${userId}`),
+          { headers: getAuthHeaders() }
+        );
         const data = res.data as UserProfile;
         setProfile(data);
         setForm({
@@ -109,7 +111,7 @@ export default function ProfilePage() {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.put(
-  `https://autism-support-platform.onrender.com/api/users/${userId}`,
+        apiUrl(`/api/users/${userId}`),
         {
           name: form.name,
           specialization: form.specialization,
@@ -128,7 +130,7 @@ export default function ProfilePage() {
           grade: form.grade,
           supportNeeds: form.supportNeeds
         },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: getAuthHeaders() }
       );
   setProfile(res.data as UserProfile);
       setEditMode(false);
@@ -154,14 +156,9 @@ export default function ProfilePage() {
       const formData = new FormData();
       formData.append("avatar", avatarFile);
       const res = await axios.post<{ user: UserProfile }>(
-        `https://autism-support-platform.onrender.com/api/users/${userId}/avatar`,
+        apiUrl(`/api/users/${userId}/avatar`),
         formData,
-        { 
-          headers: { 
-            Authorization: `Bearer ${token}`,
-            // Remove Content-Type header - let browser set it automatically for FormData
-          } 
-        }
+        { headers: getAuthHeaders() }
       );
       setProfile(res.data.user);
       setAvatarFile(null);
@@ -193,7 +190,7 @@ export default function ProfilePage() {
           <div className="flex items-center gap-6 mb-6">
             <div>
               {profile.avatar ? (
-                <img src={`https://autism-support-platform.onrender.com${profile.avatar}`} alt="Avatar" className="w-20 h-20 rounded-full object-cover border" />
+                <img src={apiUrl(profile.avatar)} alt="Avatar" className="w-20 h-20 rounded-full object-cover border" />
               ) : (
                 <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-3xl text-gray-400 border">
                   <span>{profile.name[0]}</span>

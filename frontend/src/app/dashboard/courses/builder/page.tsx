@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import axios from "axios";
+import { apiUrl, getAuthHeaders } from '../../../utils/api';
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
@@ -72,7 +73,7 @@ export default function CourseBuilderPage() {
       const formData = new FormData();
       formData.append("video", videoFile);
       const response = await axios.post(
-        "http://localhost:5000/api/courses/upload/video",
+        apiUrl('/api/courses/upload/video'),
         formData,
         {
           headers: {
@@ -101,7 +102,7 @@ export default function CourseBuilderPage() {
       const formData = new FormData();
       formData.append("thumbnail", thumbnailFile);
       const response = await axios.post(
-        "http://localhost:5000/api/courses/upload/thumbnail",
+        apiUrl('/api/courses/upload/thumbnail'),
         formData,
         {
           headers: {
@@ -142,7 +143,7 @@ export default function CourseBuilderPage() {
         price: form.isFree ? 0 : parseFloat(form.price),
       };
       await axios.post(
-        "http://localhost:5000/api/courses/",
+        apiUrl('/api/courses/'),
         courseData,
         { headers: getAuthHeaders() }
       );

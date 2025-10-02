@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { apiUrl, getAuthHeaders } from '../../../utils/api';
 
 interface Lesson {
   _id: string;
@@ -49,17 +50,17 @@ export default function CoursePlayerPage() {
       try {
         // Fetch sections for the course
         const token = localStorage.getItem("token");
-        const sectionRes = await axios.get(
-          `http://localhost:5000/api/course-sections/course/${courseId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+        const sectionRes = await axios.get<Section[]>(
+          apiUrl(`/api/course-sections/course/${courseId}`),
+          { headers: getAuthHeaders() }
         );
         const sectionsData = sectionRes.data;
         // Fetch lessons for each section
         const sectionsWithLessons = await Promise.all(
-          sectionsData.map(async (section: any) => {
-            const lessonRes = await axios.get(
-              `http://localhost:5000/api/course-lessons/section/${section._id}`,
-              { headers: { Authorization: `Bearer ${token}` } }
+          (sectionsData as Section[]).map(async (section) => {
+            const lessonRes = await axios.get<Lesson[]>(
+              apiUrl(`/api/course-lessons/section/${section._id}`),
+              { headers: getAuthHeaders() }
             );
             return {
               ...section,
@@ -85,9 +86,9 @@ export default function CoursePlayerPage() {
       setLessonError("");
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(
-          `http://localhost:5000/api/course-lessons/${selectedLessonId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+        const res = await axios.get<LessonDetail>(
+          apiUrl(`/api/course-lessons/${selectedLessonId}`),
+          { headers: getAuthHeaders() }
         );
         setLessonDetail(res.data);
       } catch (err: any) {
@@ -107,9 +108,9 @@ export default function CoursePlayerPage() {
       setProgressLoading(true);
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(
-          `http://localhost:5000/api/courses/${courseId}/progress`,
-          { headers: { Authorization: `Bearer ${token}` } }
+        const res = await axios.get<{ progress: number; completedLessons: string[] }>(
+          apiUrl(`/api/courses/${courseId}/progress`),
+          { headers: getAuthHeaders() }
         );
         setCourseProgress(res.data);
       } catch (err) {
@@ -127,15 +128,15 @@ export default function CoursePlayerPage() {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `http://localhost:5000/api/courses/${courseId}/progress`,
+        apiUrl(`/api/courses/${courseId}/progress`),
         { lessonId: selectedLessonId, isCompleted: true },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: getAuthHeaders() }
       );
       toast.success("Lesson marked as complete!");
       // Refresh progress
-      const res = await axios.get(
-        `http://localhost:5000/api/courses/${courseId}/progress`,
-        { headers: { Authorization: `Bearer ${token}` } }
+      const res = await axios.get<{ progress: number; completedLessons: string[] }>(
+        apiUrl(`/api/courses/${courseId}/progress`),
+        { headers: getAuthHeaders() }
       );
       setCourseProgress(res.data);
     } catch (err) {

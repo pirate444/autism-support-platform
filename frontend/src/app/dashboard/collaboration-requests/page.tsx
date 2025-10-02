@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { apiUrl, getAuthHeaders } from '../../../utils/api';
 import { useRouter } from "next/navigation";
 
 interface CollaborationRequest {
@@ -61,11 +62,11 @@ export default function CollaborationRequestsPage() {
 
   const fetchAllRequests = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(`http://localhost:5000/api/collaboration-requests/all`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setRequests(response.data);
+      const response = await axios.get(
+        apiUrl('/api/collaboration-requests/all'),
+        { headers: getAuthHeaders() }
+      );
+  setRequests(response.data as CollaborationRequest[]);
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Failed to fetch requests");
     } finally {
@@ -75,11 +76,11 @@ export default function CollaborationRequestsPage() {
 
   const fetchMyRequests = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(`http://localhost:5000/api/collaboration-requests/my`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setRequests(response.data);
+      const response = await axios.get(
+        apiUrl('/api/collaboration-requests/my'),
+        { headers: getAuthHeaders() }
+      );
+  setRequests(response.data as CollaborationRequest[]);
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Failed to fetch requests");
     } finally {
@@ -89,16 +90,14 @@ export default function CollaborationRequestsPage() {
 
   const handleStatusUpdate = async (requestId: string, status: 'approved' | 'rejected') => {
     try {
-      const token = localStorage.getItem("token");
       await axios.put(
-        `http://localhost:5000/api/collaboration-requests/${requestId}/status`,
+        apiUrl(`/api/collaboration-requests/${requestId}/status`),
         {
           status,
           adminResponse: adminResponse || undefined
         },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: getAuthHeaders() }
       );
-      
       toast.success(`Request ${status}`);
       setAdminResponse("");
       if (user?.isAdmin) {

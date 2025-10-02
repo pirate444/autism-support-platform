@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import axios from 'axios'
 import toast from 'react-hot-toast'
-import { apiUrl } from '../../../utils/api'
+import { apiUrl, getAuthHeaders } from '../../../utils/api'
 
 interface Notification {
   _id: string
@@ -37,40 +37,25 @@ export default function NotificationsPage() {
   }, [])
 
   const getAuthHeaders = () => {
-    const token = localStorage.getItem('token')
-    return {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
+    // Deprecated: use getAuthHeaders from api utility
+    return getAuthHeaders();
   }
 
   const loadNotifications = async () => {
     try {
       setLoading(true)
-      const token = localStorage.getItem('token')
       const response = await axios.get(
         apiUrl('/api/notifications/my'),
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: getAuthHeaders() }
       )
       
       // Handle different response structures
-      let notificationsData = response.data
-      if (response.data && response.data.notifications) {
-        notificationsData = response.data.notifications
-      } else if (response.data && Array.isArray(response.data)) {
-        notificationsData = response.data
-      } else {
-        console.warn('Unexpected notifications API response structure:', response.data)
-        notificationsData = []
-      }
-      
-      // Ensure it's an array
-      if (!Array.isArray(notificationsData)) {
-        console.error('Notifications data is not an array:', notificationsData)
-        notificationsData = []
-      }
-      
-      setNotifications(notificationsData)
+      let notificationsData: Notification[] = Array.isArray(response.data)
+        ? response.data as Notification[]
+        : (response.data && Array.isArray((response.data as any).notifications))
+          ? (response.data as any).notifications as Notification[]
+          : [];
+      setNotifications(notificationsData);
     } catch (error) {
       console.error('Error loading notifications:', error)
       toast.error('Failed to load notifications')
@@ -105,11 +90,10 @@ export default function NotificationsPage() {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      const token = localStorage.getItem('token')
       await axios.put(
         apiUrl(`/api/notifications/${notificationId}/read`),
         {},
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: getAuthHeaders() }
       )
       
       // Update local state
@@ -136,11 +120,10 @@ export default function NotificationsPage() {
 
   const markAllAsRead = async () => {
     try {
-      const token = localStorage.getItem('token')
       await axios.put(
         apiUrl('/api/notifications/mark-all-read'),
         {},
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: getAuthHeaders() }
       )
       
       // Update local state
@@ -158,10 +141,9 @@ export default function NotificationsPage() {
 
   const deleteNotification = async (notificationId: string) => {
     try {
-      const token = localStorage.getItem('token')
       await axios.delete(
         apiUrl(`/api/notifications/${notificationId}`),
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: getAuthHeaders() }
       )
       
       // Update local state

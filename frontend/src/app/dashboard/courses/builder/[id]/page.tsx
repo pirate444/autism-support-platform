@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { apiUrl, getAuthHeaders } from '../../../../utils/api';
 import { useParams, useRouter } from "next/navigation";
 
 // Inline Modal component
@@ -59,8 +60,7 @@ export default function CourseBuilderPage() {
     if (!courseId) return;
     setLoading(true);
     setError("");
-    const token = localStorage.getItem("token");
-    axios.get(`http://localhost:5000/api/courses/${courseId}`, { headers: { Authorization: `Bearer ${token}` } })
+    axios.get<any>(apiUrl(`/api/courses/${courseId}`), { headers: getAuthHeaders() })
       .then(res => setCourse(res.data))
       .catch(err => {
         if (err.response) {
@@ -83,13 +83,12 @@ export default function CourseBuilderPage() {
   // Fetch sections and lessons
   useEffect(() => {
     if (!courseId) return;
-    const token = localStorage.getItem("token");
-    axios.get(`http://localhost:5000/api/course-sections/course/${courseId}`, { headers: { Authorization: `Bearer ${token}` } })
+    axios.get<any[]>(apiUrl(`/api/course-sections/course/${courseId}`), { headers: getAuthHeaders() })
       .then(res => {
         setSections(res.data);
         // Fetch lessons for each section
-        res.data.forEach(section => {
-          axios.get(`http://localhost:5000/api/course-lessons/section/${section._id}`, { headers: { Authorization: `Bearer ${token}` } })
+        (res.data as any[]).forEach(section => {
+          axios.get<any[]>(apiUrl(`/api/course-lessons/section/${section._id}`), { headers: getAuthHeaders() })
             .then(lesRes => setLessonsBySection(prev => ({ ...prev, [section._id]: lesRes.data })));
         });
       });
@@ -112,19 +111,17 @@ export default function CourseBuilderPage() {
   };
   const handleSectionSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
-    
     try {
       if (editingSectionId) {
-        await axios.put(`http://localhost:5000/api/course-sections/${editingSectionId}`, { ...sectionForm }, { headers: { Authorization: `Bearer ${token}` } });
+        await axios.put(apiUrl(`/api/course-sections/${editingSectionId}`), { ...sectionForm }, { headers: getAuthHeaders() });
       } else {
         console.log("Creating new section with data:", { ...sectionForm, courseId });
-        const response = await axios.post(`http://localhost:5000/api/course-sections/`, { ...sectionForm, courseId }, { headers: { Authorization: `Bearer ${token}` } });
+        const response = await axios.post(apiUrl(`/api/course-sections/`), { ...sectionForm, courseId }, { headers: getAuthHeaders() });
         console.log("Section created successfully:", response.data);
       }
       setShowSectionModal(false);
       // Refresh sections
-      const res = await axios.get(`http://localhost:5000/api/course-sections/course/${courseId}`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.get<any[]>(apiUrl(`/api/course-sections/course/${courseId}`), { headers: getAuthHeaders() });
       setSections(res.data);
     } catch (error) {
       console.error("Error submitting section:", error);
@@ -138,10 +135,9 @@ export default function CourseBuilderPage() {
   };
   const handleDeleteSection = async (sectionId) => {
     if (!window.confirm("Are you sure you want to delete this section? This will also delete all its lessons.")) return;
-    const token = localStorage.getItem("token");
-    await axios.delete(`http://localhost:5000/api/course-sections/${sectionId}`, { headers: { Authorization: `Bearer ${token}` } });
+    await axios.delete(apiUrl(`/api/course-sections/${sectionId}`), { headers: getAuthHeaders() });
     // Refresh sections
-    const res = await axios.get(`http://localhost:5000/api/course-sections/course/${courseId}`, { headers: { Authorization: `Bearer ${token}` } });
+    const res = await axios.get<any[]>(apiUrl(`/api/course-sections/course/${courseId}`), { headers: getAuthHeaders() });
     setSections(res.data);
   };
   const moveSection = async (sectionId, direction) => {
@@ -156,8 +152,7 @@ export default function CourseBuilderPage() {
       return;
     }
     // Update order in backend
-    const token = localStorage.getItem("token");
-    await axios.put(`http://localhost:5000/api/course-sections/course/${courseId}/reorder`, { sectionOrders: newOrder.map((s, i) => ({ sectionId: s._id, order: i })) }, { headers: { Authorization: `Bearer ${token}` } });
+    await axios.put(apiUrl(`/api/course-sections/course/${courseId}/reorder`), { sectionOrders: newOrder.map((s, i) => ({ sectionId: s._id, order: i })) }, { headers: getAuthHeaders() });
     setSections(newOrder);
   };
 
@@ -185,7 +180,6 @@ export default function CourseBuilderPage() {
   };
   const handleLessonSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
     // Debug: log lessonForm and lessonFile
     console.log("Submitting lesson:", lessonForm, lessonFile);
     // Prevent submission if required fields are missing
@@ -197,13 +191,9 @@ export default function CourseBuilderPage() {
       // Step 1: Upload file
       const uploadForm = new FormData();
       uploadForm.append("file", lessonFile);
-      const uploadRes = await axios.post(
-        "http://localhost:5000/api/course-lessons/upload/file",
-        uploadForm,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const uploadRes = await axios.post(apiUrl('/api/course-lessons/upload/file'), uploadForm, { headers: getAuthHeaders() });
       // Step 2: Create lesson with attachment info
-      const fileInfo = uploadRes.data;
+      const fileInfo = uploadRes.data as { filename: string; originalName: string; fileUrl: string; mimetype: string; fileSize?: number; size?: number };
       const lessonData = {
         ...lessonForm,
         attachments: [
@@ -218,14 +208,14 @@ export default function CourseBuilderPage() {
         ]
       };
       await axios.post(
-        "http://localhost:5000/api/course-lessons/",
+        apiUrl('/api/course-lessons/'),
         lessonData,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: getAuthHeaders() }
       );
     } else {
       // Other lesson types (video, text, article)
       let dataToSend: any = { ...lessonForm };
-      let config = { headers: { Authorization: `Bearer ${token}` } };
+      let config = { headers: getAuthHeaders() };
       if (lessonForm.lessonType === "video" && lessonFile) {
         const formData = new FormData();
         formData.append("title", lessonForm.title);
@@ -235,26 +225,25 @@ export default function CourseBuilderPage() {
         formData.append("file", lessonFile);
         dataToSend = formData;
         // Do NOT set Content-Type for FormData; let the browser handle it
-        config = { headers: { Authorization: `Bearer ${token}` } };
+        config = { headers: getAuthHeaders() };
       }
       if (editingLessonId) {
-        await axios.put(`http://localhost:5000/api/course-lessons/${editingLessonId}`, dataToSend, config);
+        await axios.put(apiUrl(`/api/course-lessons/${editingLessonId}`), dataToSend, config);
       } else {
-        await axios.post(`http://localhost:5000/api/course-lessons/`, dataToSend, config);
+        await axios.post(apiUrl(`/api/course-lessons/`), dataToSend, config);
       }
     }
     setShowLessonModal(false);
     setLessonFile(null);
     // Refresh lessons for the section
-    const res = await axios.get(`http://localhost:5000/api/course-lessons/section/${lessonForm.sectionId}`, { headers: { Authorization: `Bearer ${token}` } });
+    const res = await axios.get<any[]>(apiUrl(`/api/course-lessons/section/${lessonForm.sectionId}`), { headers: getAuthHeaders() });
     setLessonsBySection((prev) => ({ ...prev, [lessonForm.sectionId]: res.data }));
   };
   const handleDeleteLesson = async (lessonId, sectionId) => {
     if (!window.confirm("Are you sure you want to delete this lesson?")) return;
-    const token = localStorage.getItem("token");
-    await axios.delete(`http://localhost:5000/api/course-lessons/${lessonId}`, { headers: { Authorization: `Bearer ${token}` } });
+    await axios.delete(apiUrl(`/api/course-lessons/${lessonId}`), { headers: getAuthHeaders() });
     // Refresh lessons for the section
-    const res = await axios.get(`http://localhost:5000/api/course-lessons/section/${sectionId}`, { headers: { Authorization: `Bearer ${token}` } });
+    const res = await axios.get<any[]>(apiUrl(`/api/course-lessons/section/${sectionId}`), { headers: getAuthHeaders() });
     setLessonsBySection((prev) => ({ ...prev, [sectionId]: res.data }));
   };
   const moveLesson = async (sectionId, lessonId, direction) => {
@@ -270,8 +259,7 @@ export default function CourseBuilderPage() {
       return;
     }
     // Update order in backend
-    const token = localStorage.getItem("token");
-    await axios.put(`http://localhost:5000/api/course-lessons/section/${sectionId}/reorder`, { lessonOrders: newOrder.map((l, i) => ({ lessonId: l._id, order: i })) }, { headers: { Authorization: `Bearer ${token}` } });
+    await axios.put(apiUrl(`/api/course-lessons/section/${sectionId}/reorder`), { lessonOrders: newOrder.map((l, i) => ({ lessonId: l._id, order: i })) }, { headers: getAuthHeaders() });
     setLessonsBySection((prev) => ({ ...prev, [sectionId]: newOrder }));
   };
 
