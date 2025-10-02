@@ -51,7 +51,7 @@ export default function DoctorsPage() {
   const loadDoctors = async () => {
     try {
       const response = await axios.get(
-        'http://localhost:5000/api/doctors/',
+  'https://autism-support-platform.onrender.com/api/doctors/',
         { headers: getAuthHeaders() }
       )
       
@@ -60,7 +60,7 @@ export default function DoctorsPage() {
         response.data.map(async (doctor: Doctor) => {
           try {
             const unreadResponse = await axios.get(
-              `http://localhost:5000/api/messages/unread/count/${doctor._id}`,
+              `https://autism-support-platform.onrender.com/api/messages/unread/count/${doctor._id}`,
               { headers: getAuthHeaders() }
             )
             return { ...doctor, unreadCount: unreadResponse.data.unreadCount }

@@ -110,7 +110,7 @@ export default function CoursesPage() {
       if (filterPublished !== '') params.append('isPublished', filterPublished)
 
       const response = await axios.get(
-        `http://localhost:5000/api/courses/?${params.toString()}`,
+  `https://autism-support-platform.onrender.com/api/courses/?${params.toString()}`,
         { headers: getAuthHeaders() }
       )
       setCourses(response.data)
@@ -126,7 +126,7 @@ export default function CoursesPage() {
   const loadMyProgress = async () => {
     try {
       const response = await axios.get(
-        'http://localhost:5000/api/courses/progress/user',
+  'https://autism-support-platform.onrender.com/api/courses/progress/user',
         { headers: getAuthHeaders() }
       )
       setMyProgress(response.data)
@@ -156,7 +156,7 @@ export default function CoursesPage() {
       }
 
       const response = await axios.post(
-        'http://localhost:5000/api/courses/',
+  'https://autism-support-platform.onrender.com/api/courses/',
         courseData,
         { headers: getAuthHeaders() }
       )
@@ -183,7 +183,7 @@ export default function CoursesPage() {
   const handleEnroll = async (courseId: string) => {
     try {
       await axios.post(
-        `http://localhost:5000/api/courses/${courseId}/enroll`,
+  `https://autism-support-platform.onrender.com/api/courses/${courseId}/enroll`,
         {},
         { headers: getAuthHeaders() }
       )
@@ -199,7 +199,7 @@ export default function CoursesPage() {
   const handleUpdateProgress = async (courseId: string, progress: number, isCompleted: boolean = false) => {
     try {
       await axios.put(
-        `http://localhost:5000/api/courses/${courseId}/progress`,
+  `https://autism-support-platform.onrender.com/api/courses/${courseId}/progress`,
         { progress, isCompleted },
         { headers: getAuthHeaders() }
       )

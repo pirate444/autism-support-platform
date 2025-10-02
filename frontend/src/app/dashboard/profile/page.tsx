@@ -66,27 +66,28 @@ export default function ProfilePage() {
       setError("");
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(`http://localhost:5000/api/users/${userId}`, {
+        const res = await axios.get<UserProfile>(`https://autism-support-platform.onrender.com/api/users/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setProfile(res.data);
+        const data = res.data as UserProfile;
+        setProfile(data);
         setForm({
-          name: res.data.name || "",
-          specialization: res.data.specialization || "",
-          phone: res.data.phone || "",
-          bio: res.data.bio || "",
-          location: res.data.location || "",
-          dateOfBirth: res.data.dateOfBirth ? res.data.dateOfBirth.substring(0, 10) : "",
-          gender: res.data.gender || "",
-          qualifications: res.data.qualifications || "",
-          yearsOfExperience: res.data.yearsOfExperience?.toString() || "",
-          workplace: res.data.workplace || "",
-          childName: res.data.childName || "",
-          childAge: res.data.childAge?.toString() || "",
-          childDiagnosis: res.data.childDiagnosis || "",
-          school: res.data.school || "",
-          grade: res.data.grade || "",
-          supportNeeds: res.data.supportNeeds || ""
+          name: data.name || "",
+          specialization: data.specialization || "",
+          phone: data.phone || "",
+          bio: data.bio || "",
+          location: data.location || "",
+          dateOfBirth: data.dateOfBirth ? data.dateOfBirth.substring(0, 10) : "",
+          gender: data.gender || "",
+          qualifications: data.qualifications || "",
+          yearsOfExperience: data.yearsOfExperience?.toString() || "",
+          workplace: data.workplace || "",
+          childName: data.childName || "",
+          childAge: data.childAge?.toString() || "",
+          childDiagnosis: data.childDiagnosis || "",
+          school: data.school || "",
+          grade: data.grade || "",
+          supportNeeds: data.supportNeeds || ""
         });
       } catch (err) {
         setError("Failed to load profile.");
@@ -108,7 +109,7 @@ export default function ProfilePage() {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.put(
-        `http://localhost:5000/api/users/${userId}`,
+  `https://autism-support-platform.onrender.com/api/users/${userId}`,
         {
           name: form.name,
           specialization: form.specialization,
@@ -129,7 +130,7 @@ export default function ProfilePage() {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setProfile(res.data);
+  setProfile(res.data as UserProfile);
       setEditMode(false);
       toast.success("Profile updated!");
     } catch (err) {
@@ -152,8 +153,8 @@ export default function ProfilePage() {
       const token = localStorage.getItem("token");
       const formData = new FormData();
       formData.append("avatar", avatarFile);
-      const res = await axios.post(
-        `http://localhost:5000/api/users/${userId}/avatar`,
+      const res = await axios.post<{ user: UserProfile }>(
+        `https://autism-support-platform.onrender.com/api/users/${userId}/avatar`,
         formData,
         { 
           headers: { 
@@ -192,7 +193,7 @@ export default function ProfilePage() {
           <div className="flex items-center gap-6 mb-6">
             <div>
               {profile.avatar ? (
-                <img src={`http://localhost:5000${profile.avatar}`} alt="Avatar" className="w-20 h-20 rounded-full object-cover border" />
+                <img src={`https://autism-support-platform.onrender.com${profile.avatar}`} alt="Avatar" className="w-20 h-20 rounded-full object-cover border" />
               ) : (
                 <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-3xl text-gray-400 border">
                   <span>{profile.name[0]}</span>
