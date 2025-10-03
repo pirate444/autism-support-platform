@@ -26,15 +26,15 @@ if (!fs.existsSync(avatarsDir)) {
 
 // CORS configuration for both development and production
 const allowedOrigins = [
-  'http://localhost:3000',
-  'http://localhost:3001',
-  'http://localhost:3002',
-  'http://127.0.0.1:3000',
-  'http://127.0.0.1:3001',
-  'http://127.0.0.1:3002',
-  'https://autism-support-platform.vercel.app',
-  'https://autism-support-platform.netlify.app'
+  'https://autism-support-platform-wlet.vercel.app', // your Vercel frontend
+  'http://localhost:3000' // for local development
 ];
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true, // if you use cookies or authentication
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // For development, you can set this environment variable to allow all origins
 const isDevelopment = process.env.NODE_ENV === 'development' || process.env.ALLOW_ALL_ORIGINS === 'true';
