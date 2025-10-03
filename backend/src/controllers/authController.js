@@ -57,24 +57,33 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.log('Login validation failed:', errors.array());
     return res.status(400).json({ message: 'Validation failed', errors: errors.array() });
   }
   try {
     const { email, password } = req.body;
+    console.log('Login attempt:', email);
     const user = await User.findOne({ email });
     if (!user) {
+      console.log('User not found for email:', email);
       return res.status(400).json({ message: 'Invalid credentials.' });
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      console.log('Password mismatch for user:', email);
       return res.status(400).json({ message: 'Invalid credentials.' });
     }
     // Create JWT
+    if (!process.env.JWT_SECRET) {
+      console.error('JWT_SECRET is not set in environment variables!');
+      return res.status(500).json({ message: 'Server error: JWT secret not set.' });
+    }
     const token = jwt.sign(
       { userId: user._id, role: user.role, isAdmin: user.isAdmin },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
+    console.log('Login successful for user:', email);
     res.json({ 
       token, 
       user: { 
@@ -87,6 +96,7 @@ exports.login = async (req, res) => {
       } 
     });
   } catch (err) {
+    console.error('Login error:', err);
     res.status(500).json({ message: 'Server error.', error: err.message });
   }
-}; 
+};
