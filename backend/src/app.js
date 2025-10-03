@@ -24,67 +24,39 @@ if (!fs.existsSync(avatarsDir)) {
   console.log('Created avatars directory:', avatarsDir);
 }
 
-// CORS configuration for both development and production
+// CORS configuration
 const allowedOrigins = [
   'https://autism-support-platform-wlet.vercel.app', // your Vercel frontend
   'http://localhost:3000' // for local development
 ];
+const isDevelopment = process.env.NODE_ENV === 'development' || process.env.ALLOW_ALL_ORIGINS === 'true';
+
 app.use(cors({
-  origin: allowedOrigins,
-  credentials: true, // if you use cookies or authentication
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (isDevelopment) {
+      // Allow all localhost and 127.0.0.1 origins in development
+      if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+        return callback(null, true);
+      }
+      // Allow all origins in development mode
+      return callback(null, true);
+    } else {
+      // Strict CORS for production
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        return callback(null, true);
+      } else {
+        return callback(new Error('Not allowed by CORS'));
+      }
+    }
+  },
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-
-// For development, you can set this environment variable to allow all origins
-const isDevelopment = process.env.NODE_ENV === 'development' || process.env.ALLOW_ALL_ORIGINS === 'true';
-
-if (isDevelopment) {
-  // More permissive CORS for development
-  app.use(cors({ 
-    origin: function (origin, callback) {
-      console.log('🌐 CORS request from origin:', origin);
-      
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) {
-        console.log('✅ Allowing request with no origin');
-        return callback(null, true);
-      }
-      
-      // Allow all localhost and 127.0.0.1 origins in development
-      if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
-        console.log('✅ Allowing localhost origin:', origin);
-        return callback(null, true);
-      }
-      
-      // Allow all origins in development mode
-      console.log('✅ Development mode: allowing origin:', origin);
-      callback(null, true);
-    },
-    credentials: true 
-  }));
-  console.log('🔓 Development mode: CORS allows all origins');
-} else {
-  // Strict CORS for production
-  app.use(cors({ 
-    origin: function (origin, callback) {
-      console.log('🌐 CORS request from origin:', origin);
-      
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
-      
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        console.log('✅ Allowing production origin:', origin);
-        callback(null, true);
-      } else {
-        console.log('❌ CORS blocked origin:', origin);
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    credentials: true 
-  }));
-  console.log('🔒 Production mode: CORS restricted to allowed origins');
-}
+// Handle preflight requests for all routes
+app.options('*', cors());
 app.use(express.json());
 app.use(helmet());
 
@@ -193,8 +165,11 @@ app.get('/', (req, res) => {
   res.send('Welcome to the Autism Support Platform API!');
 });
 
-// Generic error handler (should be after all routes)
+// CORS error handler (should be after all routes)
 app.use((err, req, res, next) => {
+  if (err.message === 'Not allowed by CORS') {
+    return res.status(403).json({ message: 'CORS error: Not allowed by CORS' });
+  }
   console.error(err);
   res.status(500).json({ message: 'Server error.' });
 });
