@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { apiUrl } from '../../../utils/api';
 import toast from "react-hot-toast";
 import DashboardLayout from '../DashboardLayout';
 
@@ -175,7 +176,7 @@ export default function CollaborationPage() {
       // Admin sees all students, doctors and other professionals see only their assigned students
       const endpoint = user?.isAdmin ? '/api/students/' : '/api/students/my-assigned';
       
-      const response = await axios.get(`http://localhost:5000${endpoint}`, {
+  const response = await axios.get(apiUrl(endpoint), {
         headers: { Authorization: `Bearer ${token}` },
       });
       setStudents(response.data);
@@ -190,7 +191,7 @@ export default function CollaborationPage() {
     try {
       setLoadingRequests(true);
       const token = localStorage.getItem("token");
-      const response = await axios.get(`http://localhost:5000/api/collaboration-requests/my`, {
+  const response = await axios.get(apiUrl('/api/collaboration-requests/my'), {
         headers: { Authorization: `Bearer ${token}` },
       });
       setMyRequests(response.data);
@@ -212,7 +213,7 @@ export default function CollaborationPage() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `http://localhost:5000/api/students/search-for-collaboration?ministryCode=${searchMinistryCode}`,
+        apiUrl(`/api/students/search-for-collaboration?ministryCode=${searchMinistryCode}`),
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -247,7 +248,7 @@ export default function CollaborationPage() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `http://localhost:5000/api/collaboration-requests/access/${selectedStudent._id}`,
+        apiUrl(`/api/collaboration-requests/access/${selectedStudent._id}`),
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setCollaborationAccess(response.data);
@@ -269,21 +270,21 @@ export default function CollaborationPage() {
       
       // Fetch notes
       const notesResponse = await axios.get(
-        `http://localhost:5000/api/collaboration/notes/student/${selectedStudent._id}`,
+        apiUrl(`/api/collaboration/notes/student/${selectedStudent._id}`),
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setNotes(notesResponse.data);
       
       // Fetch appointments
       const appointmentsResponse = await axios.get(
-        `http://localhost:5000/api/collaboration/appointments?studentId=${selectedStudent._id}`,
+        apiUrl(`/api/collaboration/appointments?studentId=${selectedStudent._id}`),
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setAppointments(appointmentsResponse.data);
       
       // Fetch progress reports
       const reportsResponse = await axios.get(
-        `http://localhost:5000/api/collaboration/progress-reports/student/${selectedStudent._id}`,
+        apiUrl(`/api/collaboration/progress-reports/student/${selectedStudent._id}`),
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setProgressReports(reportsResponse.data);
@@ -301,7 +302,7 @@ export default function CollaborationPage() {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:5000/api/collaboration-requests",
+        apiUrl('/api/collaboration-requests'),
         {
           studentId: selectedStudent._id,
           requestType,
@@ -329,7 +330,7 @@ export default function CollaborationPage() {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:5000/api/collaboration/notes",
+        apiUrl('/api/collaboration/notes'),
         {
           content: noteContent,
           studentId: selectedStudent._id
@@ -355,7 +356,7 @@ export default function CollaborationPage() {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:5000/api/collaboration/appointments",
+        apiUrl('/api/collaboration/appointments'),
         {
           ...appointmentForm,
           studentId: selectedStudent._id
@@ -387,7 +388,7 @@ export default function CollaborationPage() {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:5000/api/collaboration/progress-reports",
+        apiUrl('/api/collaboration/progress-reports'),
         {
           ...reportForm,
           studentId: selectedStudent._id

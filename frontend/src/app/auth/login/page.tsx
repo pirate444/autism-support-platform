@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import axios from 'axios'
+import { apiUrl } from '../../../utils/api';
 import toast from 'react-hot-toast'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import LanguageSwitcher from '../../../components/LanguageSwitcher'
@@ -45,7 +46,7 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', formData)
+  const response = await axios.post(apiUrl('/api/auth/login'), formData)
       
       // Store token and user data
       localStorage.setItem('token', response.data.token)

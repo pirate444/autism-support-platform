@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
+import { apiUrl } from '../utils/api'
 import toast from 'react-hot-toast'
 
 interface CourseAccessRequestProps {
@@ -44,7 +45,7 @@ export default function CourseAccessRequest({
   const checkAccess = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/course-access/check/${courseId}`,
+        apiUrl(`/api/course-access/check/${courseId}`),
         { headers: getAuthHeaders() }
       )
       setAccessStatus(response.data)
@@ -71,7 +72,7 @@ export default function CourseAccessRequest({
     setSubmitting(true)
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/course-access/request',
+        apiUrl('/api/course-access/request'),
         {
           courseId,
           requestReason: requestReason.trim()

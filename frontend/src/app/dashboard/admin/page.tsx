@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import axios from 'axios'
+import { apiUrl } from '../../../utils/api';
 import toast from 'react-hot-toast'
 
 interface User {
@@ -46,7 +47,7 @@ export default function AdminDashboard() {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await axios.get('http://localhost:5000/api/users', {
+      const response = await axios.get(apiUrl('/api/users'), {
         headers: { Authorization: `Bearer ${token}` }
       })
       setUsers(response.data)
@@ -61,7 +62,7 @@ export default function AdminDashboard() {
   const fetchPendingCourseRequests = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await axios.get('http://localhost:5000/api/course-access-requests', {
+      const response = await axios.get(apiUrl('/api/course-access-requests'), {
         headers: { Authorization: `Bearer ${token}` }
       })
       const pendingCount = response.data.filter((request: any) => request.status === 'pending').length
@@ -76,7 +77,7 @@ export default function AdminDashboard() {
     
     try {
       const token = localStorage.getItem('token')
-      await axios.delete(`http://localhost:5000/api/users/${userId}`, {
+      await axios.delete(apiUrl(`/api/users/${userId}`), {
         headers: { Authorization: `Bearer ${token}` }
       })
       toast.success('User deleted successfully')

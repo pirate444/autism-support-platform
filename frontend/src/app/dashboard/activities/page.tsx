@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
+import { apiUrl } from '../../../utils/api';
 import toast from 'react-hot-toast'
 import { useLanguage } from '../../../contexts/LanguageContext';
 import LanguageSwitcher from '../../../components/LanguageSwitcher'
@@ -95,7 +96,7 @@ export default function ActivitiesPage() {
       if (filterCategory) params.append('category', filterCategory)
 
       const response = await axios.get(
-        `http://localhost:5000/api/activities/?${params.toString()}`,
+        apiUrl(`/api/activities/?${params.toString()}`),
         { headers: getAuthHeaders() }
       )
       setActivities(response.data)
@@ -122,7 +123,7 @@ export default function ActivitiesPage() {
 
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/upload/',
+        apiUrl('/api/upload/'),
         formData,
         {
           headers: {
@@ -155,7 +156,7 @@ export default function ActivitiesPage() {
 
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/activities/',
+        apiUrl('/api/activities/'),
         uploadForm,
         { headers: getAuthHeaders() }
       )

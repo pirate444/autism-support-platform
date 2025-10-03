@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import axios from 'axios'
+import { apiUrl } from '../../../utils/api';
 import toast from 'react-hot-toast'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import LanguageSwitcher from '../../../components/LanguageSwitcher'
@@ -44,7 +45,7 @@ export default function RegisterPage() {
 
     try {
       console.log('Sending registration data:', formData)
-      const response = await axios.post(`http://localhost:5000/api/auth/register`, formData)
+  const response = await axios.post(apiUrl('/api/auth/register'), formData)
       
       console.log('Registration response:', response.data)
       
@@ -54,7 +55,7 @@ export default function RegisterPage() {
       
       // Auto-login the user after successful registration
       try {
-        const loginResponse = await axios.post(`http://localhost:5000/api/auth/login`, {
+        const loginResponse = await axios.post(apiUrl('/api/auth/login'), {
           email: formData.email,
           password: formData.password
         })
@@ -92,7 +93,7 @@ export default function RegisterPage() {
   const handleAutoLogin = async () => {
     setLoading(true)
     try {
-      const loginResponse = await axios.post(`http://localhost:5000/api/auth/login`, {
+      const loginResponse = await axios.post(apiUrl('/api/auth/login'), {
         email: formData.email,
         password: formData.password
       })

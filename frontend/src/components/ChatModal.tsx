@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
+import { apiUrl } from '../utils/api'
 import toast from 'react-hot-toast'
 
 interface Message {
@@ -46,14 +47,14 @@ export default function ChatModal({ isOpen, onClose, recipientId, recipientName 
     setLoading(true)
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/messages/${recipientId}`,
+        apiUrl(`/api/messages/${recipientId}`),
         { headers: getAuthHeaders() }
       )
       setMessages(response.data)
       
       // Mark messages as read
       await axios.put(
-        `http://localhost:5000/api/messages/${recipientId}/read`,
+        apiUrl(`/api/messages/${recipientId}/read`),
         {},
         { headers: getAuthHeaders() }
       )
@@ -76,7 +77,7 @@ export default function ChatModal({ isOpen, onClose, recipientId, recipientName 
     setSending(true)
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/messages/',
+        apiUrl('/api/messages/'),
         {
           recipientId,
           content: newMessage.trim()

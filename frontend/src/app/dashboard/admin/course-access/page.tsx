@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import axios from 'axios'
+import { apiUrl } from '../../../../utils/api';
 import toast from 'react-hot-toast'
 import { useLanguage } from '../../../../contexts/LanguageContext';
 
@@ -75,7 +76,7 @@ export default function CourseAccessManagementPage() {
     setLoading(true)
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/course-access/all`,
+        apiUrl('/api/course-access/all'),
         { headers: getAuthHeaders() }
       )
       setRequests(response.data.requests || response.data)
@@ -91,7 +92,7 @@ export default function CourseAccessManagementPage() {
     setProcessing(true)
     try {
       await axios.put(
-        `http://localhost:5000/api/course-access/${requestId}/approve`,
+        apiUrl(`/api/course-access/${requestId}/approve`),
         { adminResponse: adminResponse || 'Access approved.' },
         { headers: getAuthHeaders() }
       )
@@ -117,7 +118,7 @@ export default function CourseAccessManagementPage() {
     setProcessing(true)
     try {
       await axios.put(
-        `http://localhost:5000/api/course-access/${requestId}/reject`,
+        apiUrl(`/api/course-access/${requestId}/reject`),
         { adminResponse: adminResponse.trim() },
         { headers: getAuthHeaders() }
       )
