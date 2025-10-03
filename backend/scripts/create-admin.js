@@ -6,7 +6,10 @@ require('dotenv').config();
 async function createAdmin() {
   try {
     // Connect to MongoDB
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/autism-support');
+    if (!process.env.MONGODB_URI) {
+      throw new Error('MONGODB_URI environment variable is not set.');
+    }
+    await mongoose.connect(process.env.MONGODB_URI);
     console.log('Connected to MongoDB');
 
     // Check if admin already exists

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { apiUrl, getAuthHeaders } from '../../../../utils/api';
 
 interface Student {
   _id: string;
@@ -173,10 +174,10 @@ export default function CollaborationPage() {
       const token = localStorage.getItem("token");
       // Admin sees all students, doctors and other professionals see only their assigned students
       const endpoint = user?.isAdmin ? '/api/students/' : '/api/students/my-assigned';
-      
-      const response = await axios.get(`http://localhost:8080${endpoint}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        apiUrl(endpoint),
+        { headers: getAuthHeaders() }
+      );
       setStudents(response.data);
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Failed to fetch students");
@@ -189,9 +190,10 @@ export default function CollaborationPage() {
     try {
       setLoadingRequests(true);
       const token = localStorage.getItem("token");
-      const response = await axios.get(`http://localhost:8080/api/collaboration-requests/my`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        apiUrl('/api/collaboration-requests/my'),
+        { headers: getAuthHeaders() }
+      );
       setMyRequests(response.data);
     } catch (err: any) {
       console.error("Failed to fetch my requests:", err);
@@ -210,11 +212,10 @@ export default function CollaborationPage() {
     setSearchingStudent(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        `http://localhost:8080/api/students/search-for-collaboration?ministryCode=${searchMinistryCode}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+      const response = await axios.get<Student | null>(
+        apiUrl(`/api/students/search-for-collaboration?ministryCode=${searchMinistryCode}`),
+        { headers: getAuthHeaders() }
       );
-      
       setSearchedStudent(response.data);
       toast.success("Student found!");
     } catch (err: any) {
@@ -245,14 +246,13 @@ export default function CollaborationPage() {
     
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        `http://localhost:8080/api/collaboration-requests/access/${selectedStudent._id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+      const response = await axios.get<CollaborationAccess | null>(
+        apiUrl(`/api/collaboration-requests/access/${selectedStudent._id}`),
+        { headers: getAuthHeaders() }
       );
       setCollaborationAccess(response.data);
-      
       // If user just got access and is not admin, refresh students list
-      if (response.data.hasAccess && !user?.isAdmin) {
+      if ((response.data as CollaborationAccess)?.hasAccess && !user?.isAdmin) {
         fetchStudents();
       }
     } catch (err: any) {
@@ -267,25 +267,24 @@ export default function CollaborationPage() {
       const token = localStorage.getItem("token");
       
       // Fetch notes
-      const notesResponse = await axios.get(
-        `http://localhost:8080/api/collaboration/notes/student/${selectedStudent._id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+      const notesResponse = await axios.get<Note[]>(
+        apiUrl(`/api/collaboration/notes/student/${selectedStudent._id}`),
+        { headers: getAuthHeaders() }
       );
       setNotes(notesResponse.data);
       
       // Fetch appointments
       const appointmentsResponse = await axios.get(
-        `http://localhost:8080/api/collaboration/appointments?studentId=${selectedStudent._id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        apiUrl(`/api/collaboration/appointments?studentId=${selectedStudent._id}`),
+        { headers: getAuthHeaders() }
       );
-      setAppointments(appointmentsResponse.data);
-      
+  setAppointments(appointmentsResponse.data as Appointment[]);
       // Fetch progress reports
       const reportsResponse = await axios.get(
-        `http://localhost:8080/api/collaboration/progress-reports/student/${selectedStudent._id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        apiUrl(`/api/collaboration/progress-reports/student/${selectedStudent._id}`),
+        { headers: getAuthHeaders() }
       );
-      setProgressReports(reportsResponse.data);
+  setProgressReports(reportsResponse.data as ProgressReport[]);
     } catch (err: any) {
       console.error("Failed to fetch collaboration data:", err);
     }
@@ -300,13 +299,13 @@ export default function CollaborationPage() {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:8080/api/collaboration-requests",
+        apiUrl('/api/collaboration-requests'),
         {
           studentId: selectedStudent._id,
           requestType,
           reason: requestReason
         },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: getAuthHeaders() }
       );
       
       toast.success("Collaboration request submitted successfully");
@@ -328,12 +327,12 @@ export default function CollaborationPage() {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:8080/api/collaboration/notes",
+        apiUrl('/api/collaboration/notes'),
         {
           content: noteContent,
           studentId: selectedStudent._id
         },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: getAuthHeaders() }
       );
       
       toast.success("Note created successfully");
@@ -354,12 +353,12 @@ export default function CollaborationPage() {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:8080/api/collaboration/appointments",
+        apiUrl('/api/collaboration/appointments'),
         {
           ...appointmentForm,
           studentId: selectedStudent._id
         },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: getAuthHeaders() }
       );
       
       toast.success("Appointment created successfully");
@@ -386,12 +385,12 @@ export default function CollaborationPage() {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:8080/api/collaboration/progress-reports",
+        apiUrl('/api/collaboration/progress-reports'),
         {
           ...reportForm,
           studentId: selectedStudent._id
         },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: getAuthHeaders() }
       );
       
       toast.success("Progress report created successfully");

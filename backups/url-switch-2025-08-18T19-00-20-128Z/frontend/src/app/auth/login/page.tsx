@@ -40,13 +40,13 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
 
+    // Use hosted API URL from env or fallback
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://autism-support-platform.onrender.com';
     try {
-      const response = await axios.post('http://localhost:8080/api/auth/login', formData)
-      
+      const response = await axios.post(`${apiUrl}/api/auth/login`, formData)
       // Store token and user data
       localStorage.setItem('token', response.data.token)
       localStorage.setItem('user', JSON.stringify(response.data.user))
-      
       toast.success('Login successful!')
       router.push('/dashboard')
     } catch (error: any) {

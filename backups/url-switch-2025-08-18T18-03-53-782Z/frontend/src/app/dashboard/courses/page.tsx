@@ -107,7 +107,7 @@ export default function CoursesPage() {
       if (filterPublished !== '') params.append('isPublished', filterPublished)
 
       const response = await axios.get(
-        `https://autism-support-platform-production.up.railway.app/api/courses/?${params.toString()}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/courses/?${params.toString()}`,
         { headers: getAuthHeaders() }
       )
       setCourses(response.data)
@@ -123,7 +123,7 @@ export default function CoursesPage() {
   const loadMyProgress = async () => {
     try {
       const response = await axios.get(
-        'https://autism-support-platform-production.up.railway.app/api/courses/progress/user',
+        `${process.env.NEXT_PUBLIC_API_URL}/api/courses/progress/user`,
         { headers: getAuthHeaders() }
       )
       setMyProgress(response.data)
@@ -153,7 +153,7 @@ export default function CoursesPage() {
       }
 
       const response = await axios.post(
-        'https://autism-support-platform-production.up.railway.app/api/courses/',
+        `${process.env.NEXT_PUBLIC_API_URL}/api/courses/`,
         courseData,
         { headers: getAuthHeaders() }
       )
@@ -180,7 +180,7 @@ export default function CoursesPage() {
   const handleEnroll = async (courseId: string) => {
     try {
       await axios.post(
-        `https://autism-support-platform-production.up.railway.app/api/courses/${courseId}/enroll`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/enroll`,
         {},
         { headers: getAuthHeaders() }
       )
@@ -196,7 +196,7 @@ export default function CoursesPage() {
   const handleUpdateProgress = async (courseId: string, progress: number, isCompleted: boolean = false) => {
     try {
       await axios.put(
-        `https://autism-support-platform-production.up.railway.app/api/courses/${courseId}/progress`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/progress`,
         { progress, isCompleted },
         { headers: getAuthHeaders() }
       )
@@ -211,7 +211,7 @@ export default function CoursesPage() {
   const handleTogglePublish = async (courseId: string) => {
     try {
       await axios.put(
-        `https://autism-support-platform-production.up.railway.app/api/courses/${courseId}/publish`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/publish`,
         {},
         { headers: getAuthHeaders() }
       )
@@ -242,7 +242,7 @@ export default function CoursesPage() {
       formData.append('thumbnail', thumbnailFile)
 
       const response = await axios.post(
-        'https://autism-support-platform-production.up.railway.app/api/courses/upload/thumbnail',
+        `${process.env.NEXT_PUBLIC_API_URL}/api/courses/upload/thumbnail`,
         formData,
         { 
           headers: {

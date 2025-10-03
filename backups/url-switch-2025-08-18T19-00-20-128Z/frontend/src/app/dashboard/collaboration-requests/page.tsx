@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { apiUrl, getAuthHeaders } from '../../../utils/api';
 
 interface CollaborationRequest {
   _id: string;
@@ -61,10 +62,10 @@ export default function CollaborationRequestsPage() {
 
   const fetchAllRequests = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(`http://localhost:8080/api/collaboration-requests/all`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get<CollaborationRequest[]>(
+        apiUrl('/api/collaboration-requests/all'),
+        { headers: getAuthHeaders() }
+      );
       setRequests(response.data);
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Failed to fetch requests");
@@ -75,10 +76,10 @@ export default function CollaborationRequestsPage() {
 
   const fetchMyRequests = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(`http://localhost:8080/api/collaboration-requests/my`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get<CollaborationRequest[]>(
+        apiUrl('/api/collaboration-requests/my'),
+        { headers: getAuthHeaders() }
+      );
       setRequests(response.data);
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Failed to fetch requests");
@@ -91,12 +92,12 @@ export default function CollaborationRequestsPage() {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `http://localhost:8080/api/collaboration-requests/${requestId}/status`,
+        apiUrl(`/api/collaboration-requests/${requestId}/status`),
         {
           status,
           adminResponse: adminResponse || undefined
         },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: getAuthHeaders() }
       );
       
       toast.success(`Request ${status}`);

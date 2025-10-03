@@ -74,7 +74,7 @@ export default function CourseAccessManagementPage() {
     setLoading(true)
     try {
       const response = await axios.get(
-        `https://autism-support-platform-production.up.railway.app/api/course-access/all`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/course-access/all`,
         { headers: getAuthHeaders() }
       )
       setRequests(response.data.requests || response.data)
@@ -90,7 +90,7 @@ export default function CourseAccessManagementPage() {
     setProcessing(true)
     try {
       await axios.put(
-        `https://autism-support-platform-production.up.railway.app/api/course-access/${requestId}/approve`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/course-access/${requestId}/approve`,
         { adminResponse: adminResponse || 'Access approved.' },
         { headers: getAuthHeaders() }
       )
@@ -116,7 +116,7 @@ export default function CourseAccessManagementPage() {
     setProcessing(true)
     try {
       await axios.put(
-        `https://autism-support-platform-production.up.railway.app/api/course-access/${requestId}/reject`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/course-access/${requestId}/reject`,
         { adminResponse: adminResponse.trim() },
         { headers: getAuthHeaders() }
       )

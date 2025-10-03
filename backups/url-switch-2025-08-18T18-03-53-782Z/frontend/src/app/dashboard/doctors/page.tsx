@@ -50,7 +50,7 @@ export default function DoctorsPage() {
   const loadDoctors = async () => {
     try {
       const response = await axios.get(
-        'https://autism-support-platform-production.up.railway.app/api/doctors/',
+        `${process.env.NEXT_PUBLIC_API_URL}/api/doctors/`,
         { headers: getAuthHeaders() }
       )
       
@@ -59,7 +59,7 @@ export default function DoctorsPage() {
         response.data.map(async (doctor: Doctor) => {
           try {
             const unreadResponse = await axios.get(
-              `https://autism-support-platform-production.up.railway.app/api/messages/unread/count/${doctor._id}`,
+              `${process.env.NEXT_PUBLIC_API_URL}/api/messages/unread/count/${doctor._id}`,
               { headers: getAuthHeaders() }
             )
             return { ...doctor, unreadCount: unreadResponse.data.unreadCount }

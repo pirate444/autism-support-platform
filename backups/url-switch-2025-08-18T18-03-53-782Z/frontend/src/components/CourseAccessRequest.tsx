@@ -44,7 +44,7 @@ export default function CourseAccessRequest({
   const checkAccess = async () => {
     try {
       const response = await axios.get(
-        `https://autism-support-platform-production.up.railway.app/api/course-access/check/${courseId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/course-access/check/${courseId}`,
         { headers: getAuthHeaders() }
       )
       setAccessStatus(response.data)
@@ -71,7 +71,7 @@ export default function CourseAccessRequest({
     setSubmitting(true)
     try {
       const response = await axios.post(
-        'https://autism-support-platform-production.up.railway.app/api/course-access/request',
+        `${process.env.NEXT_PUBLIC_API_URL}/api/course-access/request`,
         {
           courseId,
           requestReason: requestReason.trim()

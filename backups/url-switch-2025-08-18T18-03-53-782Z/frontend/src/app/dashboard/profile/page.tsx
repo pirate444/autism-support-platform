@@ -65,7 +65,7 @@ export default function ProfilePage() {
       setError("");
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(`https://autism-support-platform-production.up.railway.app/api/users/${userId}`, {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setProfile(res.data);
@@ -107,7 +107,7 @@ export default function ProfilePage() {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.put(
-        `https://autism-support-platform-production.up.railway.app/api/users/${userId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}`,
         {
           name: form.name,
           specialization: form.specialization,
@@ -152,7 +152,7 @@ export default function ProfilePage() {
       const formData = new FormData();
       formData.append("avatar", avatarFile);
       const res = await axios.post(
-        `https://autism-support-platform-production.up.railway.app/api/users/${userId}/avatar`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}/avatar`,
         formData,
         { 
           headers: { 
@@ -185,7 +185,7 @@ export default function ProfilePage() {
         <div className="flex items-center gap-6 mb-6">
           <div>
             {profile.avatar ? (
-              <img src={`https://autism-support-platform-production.up.railway.app${profile.avatar}`} alt="Avatar" className="w-20 h-20 rounded-full object-cover border" />
+              <img src={`${process.env.NEXT_PUBLIC_API_URL}${profile.avatar}`} alt="Avatar" className="w-20 h-20 rounded-full object-cover border" />
             ) : (
               <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-3xl text-gray-400 border">
                 <span>{profile.name[0]}</span>

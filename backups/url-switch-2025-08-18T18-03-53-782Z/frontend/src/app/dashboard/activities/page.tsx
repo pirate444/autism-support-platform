@@ -91,7 +91,7 @@ export default function ActivitiesPage() {
       if (filterCategory) params.append('category', filterCategory)
 
       const response = await axios.get(
-        `https://autism-support-platform-production.up.railway.app/api/activities/?${params.toString()}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/activities/?${params.toString()}`,
         { headers: getAuthHeaders() }
       )
       setActivities(response.data)
@@ -118,7 +118,7 @@ export default function ActivitiesPage() {
 
     try {
       const response = await axios.post(
-        'https://autism-support-platform-production.up.railway.app/api/upload/',
+        `${process.env.NEXT_PUBLIC_API_URL}/api/upload/`,
         formData,
         {
           headers: {
@@ -151,7 +151,7 @@ export default function ActivitiesPage() {
 
     try {
       const response = await axios.post(
-        'https://autism-support-platform-production.up.railway.app/api/activities/',
+        `${process.env.NEXT_PUBLIC_API_URL}/api/activities/`,
         uploadForm,
         { headers: getAuthHeaders() }
       )
