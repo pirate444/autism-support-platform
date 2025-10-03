@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import axios from "axios";
-import { apiUrl, getAuthHeaders } from '../../../utils/api';
+import { apiUrl, getAuthHeaders } from '../../../../utils/api';
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 

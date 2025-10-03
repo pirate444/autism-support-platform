@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { apiUrl, getAuthHeaders } from '../../../../utils/api';
+import { apiUrl, getAuthHeaders } from '../../../../../utils/api';
 import { useParams, useRouter } from "next/navigation";
 
 // Inline Modal component

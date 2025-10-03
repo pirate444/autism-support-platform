@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { apiUrl, getAuthHeaders } from '../../../utils/api';
+import { apiUrl, getAuthHeaders } from '../../../../utils/api';
 
 interface Lesson {
   _id: string;
