@@ -26,12 +26,12 @@ if (!fs.existsSync(avatarsDir)) {
 
 // CORS configuration
 const allowedOrigins = [
-  'https://autism-support-platform-wlet.vercel.app', // your Vercel frontend
+  'https://autism-support-platform-neon.vercel.app', // your Vercel frontend
   'http://localhost:3000' // for local development
 ];
 const isDevelopment = process.env.NODE_ENV === 'development' || process.env.ALLOW_ALL_ORIGINS === 'true';
 
-app.use(cors({
+const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
@@ -54,9 +54,11 @@ app.use(cors({
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
-}));
-// Handle preflight requests for all routes
-app.options('*', cors());
+};
+
+app.use(cors(corsOptions));
+// Handle preflight requests for all routes with the same CORS config
+app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use(helmet());
 
