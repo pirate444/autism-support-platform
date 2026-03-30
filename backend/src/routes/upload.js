@@ -23,18 +23,4 @@ router.use((err, req, res, next) => {
   }
 });
 
-// (Optional) Direct upload route for testing
-router.post('/upload', upload.single('file'), (req, res, next) => {
-  console.log('Route hit, req.file:', req.file);
-  next();
-  res.json({
-    url: req.file.path, // Cloudinary URL
-    public_id: req.file.filename,
-    originalname: req.file.originalname,
-  });
-});
-
-// (Optional) Remove this if not needed anymore
-// router.get('/:filename', auth, uploadController.getFile);
-
 module.exports = router;

@@ -61,7 +61,7 @@ exports.createNote = async (req, res) => {
     
     res.status(201).json(note);
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
@@ -80,7 +80,7 @@ exports.getNotesByStudent = async (req, res) => {
       .sort({ createdAt: -1 });
     res.json(notes);
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
@@ -88,30 +88,44 @@ exports.updateNote = async (req, res) => {
   try {
     const { id } = req.params;
     const { content } = req.body;
-    const note = await Note.findByIdAndUpdate(
-      id,
-      { content, updatedAt: Date.now() },
-      { new: true }
-    );
+
+    const note = await Note.findById(id);
     if (!note) {
       return res.status(404).json({ message: 'Note not found.' });
     }
+
+    // Only the creator or admin can update
+    if (note.createdBy.toString() !== req.user.userId && !req.user.isAdmin) {
+      return res.status(403).json({ message: 'You are not authorized to update this note.' });
+    }
+
+    note.content = content;
+    note.updatedAt = Date.now();
+    await note.save();
     res.json(note);
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
 exports.deleteNote = async (req, res) => {
   try {
     const { id } = req.params;
-    const note = await Note.findByIdAndDelete(id);
+
+    const note = await Note.findById(id);
     if (!note) {
       return res.status(404).json({ message: 'Note not found.' });
     }
+
+    // Only the creator or admin can delete
+    if (note.createdBy.toString() !== req.user.userId && !req.user.isAdmin) {
+      return res.status(403).json({ message: 'You are not authorized to delete this note.' });
+    }
+
+    await note.deleteOne();
     res.json({ message: 'Note deleted successfully.' });
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
@@ -145,7 +159,7 @@ exports.createAppointment = async (req, res) => {
     
     res.status(201).json(appointment);
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
@@ -164,13 +178,13 @@ exports.getAppointments = async (req, res) => {
     if (status) filter.status = status;
     
     const appointments = await Appointment.find(filter)
-      .populate('student', 'name ministryCode')
+      .populate('student', 'name')
       .populate('attendees', 'name email role')
       .populate('createdBy', 'name role')
       .sort({ startTime: 1 });
     res.json(appointments);
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
@@ -178,30 +192,43 @@ exports.updateAppointmentStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    const appointment = await Appointment.findByIdAndUpdate(
-      id,
-      { status },
-      { new: true }
-    );
+
+    const appointment = await Appointment.findById(id);
     if (!appointment) {
       return res.status(404).json({ message: 'Appointment not found.' });
     }
+
+    // Only the creator or admin can update status
+    if (appointment.createdBy.toString() !== req.user.userId && !req.user.isAdmin) {
+      return res.status(403).json({ message: 'You are not authorized to update this appointment.' });
+    }
+
+    appointment.status = status;
+    await appointment.save();
     res.json(appointment);
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
 exports.deleteAppointment = async (req, res) => {
   try {
     const { id } = req.params;
-    const appointment = await Appointment.findByIdAndDelete(id);
+
+    const appointment = await Appointment.findById(id);
     if (!appointment) {
       return res.status(404).json({ message: 'Appointment not found.' });
     }
+
+    // Only the creator or admin can delete
+    if (appointment.createdBy.toString() !== req.user.userId && !req.user.isAdmin) {
+      return res.status(403).json({ message: 'You are not authorized to delete this appointment.' });
+    }
+
+    await appointment.deleteOne();
     res.json({ message: 'Appointment deleted successfully.' });
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
@@ -236,7 +263,7 @@ exports.createProgressReport = async (req, res) => {
     
     res.status(201).json(report);
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
@@ -259,33 +286,57 @@ exports.getProgressReportsByStudent = async (req, res) => {
       .sort({ reportDate: -1 });
     res.json(reports);
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
 exports.updateProgressReport = async (req, res) => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
-    const report = await ProgressReport.findByIdAndUpdate(id, updateData, { new: true });
+    const { reportDate, category, description, goals, achievements, nextSteps } = req.body;
+
+    const report = await ProgressReport.findById(id);
     if (!report) {
       return res.status(404).json({ message: 'Progress report not found.' });
     }
+
+    // Only the creator or admin can update
+    if (report.createdBy.toString() !== req.user.userId && !req.user.isAdmin) {
+      return res.status(403).json({ message: 'You are not authorized to update this report.' });
+    }
+
+    // Only update allowed fields
+    if (reportDate) report.reportDate = reportDate;
+    if (category) report.category = category;
+    if (description) report.description = description;
+    if (goals) report.goals = goals;
+    if (achievements) report.achievements = achievements;
+    if (nextSteps) report.nextSteps = nextSteps;
+    await report.save();
+
     res.json(report);
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
 exports.deleteProgressReport = async (req, res) => {
   try {
     const { id } = req.params;
-    const report = await ProgressReport.findByIdAndDelete(id);
+
+    const report = await ProgressReport.findById(id);
     if (!report) {
       return res.status(404).json({ message: 'Progress report not found.' });
     }
+
+    // Only the creator or admin can delete
+    if (report.createdBy.toString() !== req.user.userId && !req.user.isAdmin) {
+      return res.status(403).json({ message: 'You are not authorized to delete this report.' });
+    }
+
+    await report.deleteOne();
     res.json({ message: 'Progress report deleted successfully.' });
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
-}; 
+};

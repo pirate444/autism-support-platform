@@ -69,9 +69,8 @@ const getPostById = async (req, res) => {
       return res.status(404).json({ message: 'Post not found' });
     }
 
-    // Increment view count
-    post.viewCount += 1;
-    await post.save();
+    // Increment view count atomically
+    await Post.findByIdAndUpdate(id, { $inc: { viewCount: 1 } });
 
     res.json(post);
   } catch (error) {

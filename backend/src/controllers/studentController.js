@@ -88,8 +88,17 @@ exports.assignUsers = async (req, res) => {
 // Get all students (with optional filtering)
 exports.getAllStudents = async (req, res) => {
   try {
-    const { name } = req.query;
+    const { name, page = 1, limit = 20 } = req.query;
+    const skip = (page - 1) * limit;
     const filter = {};
+    
+    // Non-admin users only see students they are assigned to or created
+    if (!req.user.isAdmin) {
+      filter.$or = [
+        { assignedUsers: req.user.userId },
+        { createdBy: req.user.userId }
+      ];
+    }
     
     if (name) {
       filter.name = { $regex: name, $options: 'i' };
@@ -98,11 +107,22 @@ exports.getAllStudents = async (req, res) => {
     const students = await Student.find(filter)
       .populate('assignedUsers', 'name email role')
       .populate('createdBy', 'name email')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await Student.countDocuments(filter);
     
-    res.json(students);
+    res.json({
+      students,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / limit),
+        totalItems: total
+      }
+    });
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 

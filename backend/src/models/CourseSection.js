@@ -10,4 +10,7 @@ const courseSectionSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+// Index for efficient queries
+courseSectionSchema.index({ course: 1, order: 1 });
+
 module.exports = mongoose.model('CourseSection', courseSectionSchema); 

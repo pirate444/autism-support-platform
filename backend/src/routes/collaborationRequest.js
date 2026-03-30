@@ -18,7 +18,4 @@ router.put('/:id/status', auth, collaborationRequestController.updateRequestStat
 // Check collaboration access for a student
 router.get('/access/:studentId', auth, collaborationRequestController.checkCollaborationAccess);
 
-// Debug endpoint (temporary)
-router.get('/debug/all', auth, collaborationRequestController.debugAllRequests);
-
 module.exports = router; 

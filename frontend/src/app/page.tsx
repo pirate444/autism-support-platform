@@ -3,12 +3,13 @@
 import React from 'react';
 import Link from 'next/link';
 import { ImageSlider } from '../components/ImageSlider';
+import toast from 'react-hot-toast';
 
 
 // --- Reusable SVG for a playful, wavy section divider ---
 const WavyDivider = ({ color = "text-amber-100" }) => (
   <div className={`w-full overflow-hidden leading-[0]`}>
-    <svg className={`relative block w-full h-[60px] sm:h-[120px] ${color}`} data-name="Layer 1" xmlns="http://www.w.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+    <svg className={`relative block w-full h-[60px] sm:h-[120px] ${color}`} data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
       <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" className="fill-current"></path>
     </svg>
   </div>
@@ -99,7 +100,16 @@ const Header = () => (
   </header>
 );
 
-const AnimatedBackground = () => (
+const AnimatedBackground = () => {
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) return <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-0" />;
+
+  return (
     <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-0">
       {[...Array(15)].map((_, i) => (
         <div
@@ -117,7 +127,8 @@ const AnimatedBackground = () => (
         </div>
       ))}
     </div>
-);
+  );
+};
 
 const HeroSection = () => (
   <section className="relative bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 pt-20 pb-24 text-center overflow-hidden">
@@ -209,8 +220,8 @@ const HowItWorksSection = () => (
 
 const TestimonialsSection = () => {
   const testimonials = [
-    { text: "My daughter looks forward to her 'UNIA time' every day. It's learning that feels like play!", name: "Emily, Parent", image: "https://placehold.co/100x100/FFE4B5/333?text=E", color: "bg-green-200" },
-    { text: "An incredible tool for educators. The resources are top-notch and genuinely helpful.", name: "Mr. David, Teacher", image: "https://placehold.co/100x100/ADD8E6/333?text=D", color: "bg-blue-200" },
+    { text: "My daughter looks forward to her 'UNIA time' every day. It's learning that feels like play!", name: "Emily, Parent", image: "/L.jpg", color: "bg-green-200" },
+    { text: "An incredible tool for educators. The resources are top-notch and genuinely helpful.", name: "Mr. David, Teacher", image: "/L.jpg", color: "bg-blue-200" },
   ];
 
   return (
@@ -261,16 +272,16 @@ const Footer = () => (
           
           {/* Social Media Links */}
           <div className="flex space-x-4">
-            <a href="#" className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center hover:scale-110 transition-transform duration-300 shadow-lg hover:shadow-indigo-500/25">
+            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center hover:scale-110 transition-transform duration-300 shadow-lg hover:shadow-indigo-500/25">
               <span className="text-lg">📘</span>
             </a>
-            <a href="#" className="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center hover:scale-110 transition-transform duration-300 shadow-lg hover:shadow-blue-500/25">
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center hover:scale-110 transition-transform duration-300 shadow-lg hover:shadow-blue-500/25">
               <span className="text-lg">🐦</span>
             </a>
-            <a href="#" className="w-10 h-10 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full flex items-center justify-center hover:scale-110 transition-transform duration-300 shadow-lg hover:shadow-pink-500/25">
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full flex items-center justify-center hover:scale-110 transition-transform duration-300 shadow-lg hover:shadow-pink-500/25">
               <span className="text-lg">📷</span>
             </a>
-            <a href="#" className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center hover:scale-110 transition-transform duration-300 shadow-lg hover:shadow-green-500/25">
+            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center hover:scale-110 transition-transform duration-300 shadow-lg hover:shadow-green-500/25">
               <span className="text-lg">💼</span>
             </a>
           </div>
@@ -281,40 +292,40 @@ const Footer = () => (
           <h4 className="text-xl font-bold text-white mb-6 border-b-2 border-indigo-400 pb-2">Quick Links</h4>
           <ul className="space-y-3">
             <li>
-              <a href="/about" className="text-slate-300 hover:text-indigo-300 transition-colors duration-300 flex items-center group">
+              <Link href="/" className="text-slate-300 hover:text-indigo-300 transition-colors duration-300 flex items-center group">
                 <span className="mr-2 group-hover:animate-bounce">🏠</span>
                 About Us
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/services" className="text-slate-300 hover:text-indigo-300 transition-colors duration-300 flex items-center group">
+              <Link href="/" className="text-slate-300 hover:text-indigo-300 transition-colors duration-300 flex items-center group">
                 <span className="mr-2 group-hover:animate-bounce">🎯</span>
                 Our Services
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/courses" className="text-slate-300 hover:text-indigo-300 transition-colors duration-300 flex items-center group">
+              <Link href="/dashboard" className="text-slate-300 hover:text-indigo-300 transition-colors duration-300 flex items-center group">
                 <span className="mr-2 group-hover:animate-bounce">📚</span>
                 Learning Courses
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/activities" className="text-slate-300 hover:text-indigo-300 transition-colors duration-300 flex items-center group">
+              <Link href="/dashboard" className="text-slate-300 hover:text-indigo-300 transition-colors duration-300 flex items-center group">
                 <span className="mr-2 group-hover:animate-bounce">🎮</span>
                 Activities & Games
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/resources" className="text-slate-300 hover:text-indigo-300 transition-colors duration-300 flex items-center group">
+              <Link href="/" className="text-slate-300 hover:text-indigo-300 transition-colors duration-300 flex items-center group">
                 <span className="mr-2 group-hover:animate-bounce">📖</span>
                 Resource Library
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/blog" className="text-slate-300 hover:text-indigo-300 transition-colors duration-300 flex items-center group">
+              <Link href="/" className="text-slate-300 hover:text-indigo-300 transition-colors duration-300 flex items-center group">
                 <span className="mr-2 group-hover:animate-bounce">✍️</span>
                 Blog & News
-              </a>
+              </Link>
             </li>
           </ul>
         </div>
@@ -324,40 +335,40 @@ const Footer = () => (
           <h4 className="text-xl font-bold text-white mb-6 border-b-2 border-purple-400 pb-2">Support & Resources</h4>
           <ul className="space-y-3">
             <li>
-              <a href="/help" className="text-slate-300 hover:text-purple-300 transition-colors duration-300 flex items-center group">
+              <Link href="/" className="text-slate-300 hover:text-purple-300 transition-colors duration-300 flex items-center group">
                 <span className="mr-2 group-hover:animate-bounce">❓</span>
                 Help Center
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/faq" className="text-slate-300 hover:text-purple-300 transition-colors duration-300 flex items-center group">
+              <Link href="/" className="text-slate-300 hover:text-purple-300 transition-colors duration-300 flex items-center group">
                 <span className="mr-2 group-hover:animate-bounce">💡</span>
                 FAQ
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/tutorials" className="text-slate-300 hover:text-purple-300 transition-colors duration-300 flex items-center group">
+              <Link href="/" className="text-slate-300 hover:text-purple-300 transition-colors duration-300 flex items-center group">
                 <span className="mr-2 group-hover:animate-bounce">🎥</span>
                 Video Tutorials
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/community" className="text-slate-300 hover:text-purple-300 transition-colors duration-300 flex items-center group">
+              <Link href="/" className="text-slate-300 hover:text-purple-300 transition-colors duration-300 flex items-center group">
                 <span className="mr-2 group-hover:animate-bounce">👥</span>
                 Community Forum
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/research" className="text-slate-300 hover:text-purple-300 transition-colors duration-300 flex items-center group">
+              <Link href="/" className="text-slate-300 hover:text-purple-300 transition-colors duration-300 flex items-center group">
                 <span className="mr-2 group-hover:animate-bounce">🔬</span>
                 Research & Studies
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/partners" className="text-slate-300 hover:text-purple-300 transition-colors duration-300 flex items-center group">
+              <Link href="/" className="text-slate-300 hover:text-purple-300 transition-colors duration-300 flex items-center group">
                 <span className="mr-2 group-hover:animate-bounce">🤝</span>
                 Partner Organizations
-              </a>
+              </Link>
             </li>
           </ul>
         </div>
@@ -429,16 +440,23 @@ const Footer = () => (
             Get the latest news, updates, and learning resources delivered to your inbox. 
             Join our community of educators, specialists, and families!
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-md mx-auto">
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault();
+              toast.success('🎉 Successfully subscribed to the newsletter!');
+            }}
+            className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-md mx-auto"
+          >
             <input 
               type="email" 
+              required
               placeholder="Enter your email address" 
               className="flex-1 px-4 py-3 rounded-full bg-white/10 border border-white/20 text-white placeholder-slate-300 focus:outline-none focus:border-indigo-400 transition-colors"
             />
-            <button className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 py-3 rounded-full font-bold hover:from-indigo-600 hover:to-purple-600 transition-all hover:scale-105 shadow-lg hover:shadow-indigo-500/25">
+            <button type="submit" className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 py-3 rounded-full font-bold hover:from-indigo-600 hover:to-purple-600 transition-all hover:scale-105 shadow-lg hover:shadow-indigo-500/25">
               Subscribe! 🚀
             </button>
-          </div>
+          </form>
         </div>
       </div>
 
@@ -459,11 +477,11 @@ const Footer = () => (
           
           {/* Legal Links */}
           <div className="flex flex-wrap justify-center gap-6 text-sm">
-            <a href="/privacy" className="text-slate-400 hover:text-indigo-300 transition-colors">Privacy Policy</a>
-            <a href="/terms" className="text-slate-400 hover:text-indigo-300 transition-colors">Terms of Service</a>
-            <a href="/cookies" className="text-slate-400 hover:text-indigo-300 transition-colors">Cookie Policy</a>
-            <a href="/accessibility" className="text-slate-400 hover:text-indigo-300 transition-colors">Accessibility</a>
-            <a href="/sitemap" className="text-slate-400 hover:text-indigo-300 transition-colors">Sitemap</a>
+            <Link href="/" className="text-slate-400 hover:text-indigo-300 transition-colors">Privacy Policy</Link>
+            <Link href="/" className="text-slate-400 hover:text-indigo-300 transition-colors">Terms of Service</Link>
+            <Link href="/" className="text-slate-400 hover:text-indigo-300 transition-colors">Cookie Policy</Link>
+            <Link href="/" className="text-slate-400 hover:text-indigo-300 transition-colors">Accessibility</Link>
+            <Link href="/" className="text-slate-400 hover:text-indigo-300 transition-colors">Sitemap</Link>
           </div>
         </div>
       </div>

@@ -5,7 +5,7 @@ const auth = require('../middleware/authMiddleware');
 const multer = require('multer');
 const path = require('path');
 
-// Configure multer for video uploads
+// Configure multer for video uploads with file filter
 const videoStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/');
@@ -16,14 +16,24 @@ const videoStorage = multer.diskStorage({
   }
 });
 
+const videoFileFilter = (req, file, cb) => {
+  const allowedTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/avi', 'video/quicktime'];
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid video file type. Allowed: MP4, WebM, OGG, AVI, MOV'), false);
+  }
+};
+
 const videoUpload = multer({
   storage: videoStorage,
+  fileFilter: videoFileFilter,
   limits: {
-    fileSize: 100 * 1024 * 1024 // 100MB limit
+    fileSize: 200 * 1024 * 1024 // 200MB limit
   }
 });
 
-// Configure multer for thumbnail uploads
+// Configure multer for thumbnail uploads with file filter
 const thumbnailStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/');
@@ -34,8 +44,18 @@ const thumbnailStorage = multer.diskStorage({
   }
 });
 
+const thumbnailFileFilter = (req, file, cb) => {
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid image file type. Allowed: JPEG, PNG, GIF, WebP'), false);
+  }
+};
+
 const thumbnailUpload = multer({
   storage: thumbnailStorage,
+  fileFilter: thumbnailFileFilter,
   limits: {
     fileSize: 5 * 1024 * 1024 // 5MB limit
   }
@@ -59,4 +79,4 @@ router.get('/:courseId/progress', auth, courseController.getCourseProgress);
 router.post('/upload/video', auth, videoUpload.single('video'), courseController.uploadCourseVideo);
 router.post('/upload/thumbnail', auth, thumbnailUpload.single('thumbnail'), courseController.uploadCourseThumbnail);
 
-module.exports = router; 
+module.exports = router;

@@ -9,4 +9,8 @@ const studentSchema = new mongoose.Schema({
   // Add more fields as needed
 }, { timestamps: true });
 
+// Indexes for efficient queries
+studentSchema.index({ assignedUsers: 1 });
+studentSchema.index({ createdBy: 1 });
+
 module.exports = mongoose.model('Student', studentSchema); 

@@ -1,6 +1,8 @@
 const Course = require('../models/Course');
 const CourseProgress = require('../models/CourseProgress');
 const CourseLesson = require('../models/CourseLesson');
+const CourseSection = require('../models/CourseSection');
+const CourseAccessRequest = require('../models/CourseAccessRequest');
 const NotificationService = require('../services/notificationService');
 
 // ===== COURSE MANAGEMENT =====
@@ -56,14 +58,15 @@ exports.createCourse = async (req, res) => {
     
     res.status(201).json(course);
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
 exports.listCourses = async (req, res) => {
   try {
-    const { title, category, isPublished } = req.query;
+    const { title, category, isPublished, page = 1, limit = 20 } = req.query;
     const filter = {};
+    const skip = (page - 1) * limit;
     
     if (title) {
       filter.title = { $regex: title, $options: 'i' };
@@ -73,10 +76,21 @@ exports.listCourses = async (req, res) => {
     
     const courses = await Course.find(filter)
       .populate('createdBy', 'name role')
-      .sort({ createdAt: -1 });
-    res.json(courses);
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await Course.countDocuments(filter);
+    res.json({
+      courses,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / limit),
+        totalItems: total
+      }
+    });
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
@@ -89,27 +103,47 @@ exports.getCourseById = async (req, res) => {
     }
     res.json(course);
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
 exports.updateCourse = async (req, res) => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
     
     // Only allow specialist_educator (trainers) to update courses
     if (req.user.role !== 'specialist_educator') {
       return res.status(403).json({ message: 'Only trainers can update courses.' });
     }
-    
-    const course = await Course.findByIdAndUpdate(id, updateData, { new: true });
+
+    const course = await Course.findById(id);
     if (!course) {
       return res.status(404).json({ message: 'Course not found.' });
     }
-    res.json(course);
+
+    // Only the creator or admin can update
+    if (course.createdBy.toString() !== req.user.userId && !req.user.isAdmin) {
+      return res.status(403).json({ message: 'You can only update your own courses.' });
+    }
+
+    // Whitelist allowed update fields to prevent mass assignment
+    const allowedFields = [
+      'title', 'description', 'content', 'category', 'level', 'language',
+      'thumbnailUrl', 'previewVideoUrl', 'isFree', 'price', 'currency',
+      'requirements', 'outcomes', 'tags', 'totalLessons', 'totalDuration', 'totalSections'
+    ];
+    const updateData = {};
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        updateData[field] = req.body[field];
+      }
+    }
+    updateData.updatedAt = Date.now();
+    
+    const updatedCourse = await Course.findByIdAndUpdate(id, updateData, { new: true });
+    res.json(updatedCourse);
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
@@ -121,16 +155,27 @@ exports.deleteCourse = async (req, res) => {
     if (req.user.role !== 'specialist_educator') {
       return res.status(403).json({ message: 'Only trainers can delete courses.' });
     }
-    
-    const course = await Course.findByIdAndDelete(id);
+
+    const course = await Course.findById(id);
     if (!course) {
       return res.status(404).json({ message: 'Course not found.' });
     }
-    // Also delete related progress records
+
+    // Only the creator or admin can delete
+    if (course.createdBy.toString() !== req.user.userId && !req.user.isAdmin) {
+      return res.status(403).json({ message: 'You can only delete your own courses.' });
+    }
+
+    // Cascade delete all related records
+    await CourseLesson.deleteMany({ course: id });
+    await CourseSection.deleteMany({ course: id });
     await CourseProgress.deleteMany({ course: id });
-    res.json({ message: 'Course deleted successfully.' });
+    await CourseAccessRequest.deleteMany({ course: id });
+    await course.deleteOne();
+
+    res.json({ message: 'Course and all related data deleted successfully.' });
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
@@ -147,6 +192,12 @@ exports.togglePublishStatus = async (req, res) => {
     if (!course) {
       return res.status(404).json({ message: 'Course not found.' });
     }
+
+    // Only the creator or admin can publish/unpublish
+    if (course.createdBy.toString() !== req.user.userId && !req.user.isAdmin) {
+      return res.status(403).json({ message: 'You can only publish/unpublish your own courses.' });
+    }
+
     const wasPublished = course.isPublished;
     course.isPublished = !course.isPublished;
     await course.save();
@@ -158,7 +209,7 @@ exports.togglePublishStatus = async (req, res) => {
     
     res.json(course);
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
@@ -184,7 +235,7 @@ exports.enrollInCourse = async (req, res) => {
     if (err.code === 11000) {
       return res.status(409).json({ message: 'Already enrolled in this course.' });
     }
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
@@ -217,7 +268,7 @@ exports.updateProgress = async (req, res) => {
       completedLessons: progressRecord.completedLessons.map(id => id.toString())
     });
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
@@ -228,7 +279,7 @@ exports.getUserProgress = async (req, res) => {
       .sort({ createdAt: -1 });
     res.json(progress);
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
@@ -244,7 +295,7 @@ exports.getCourseProgress = async (req, res) => {
       completedLessons: progress.completedLessons ? progress.completedLessons.map(id => id.toString()) : []
     });
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
@@ -260,42 +311,6 @@ exports.uploadCourseVideo = async (req, res) => {
       return res.status(400).json({ message: 'No video file uploaded.' });
     }
 
-    // Check file type
-    const allowedTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/avi', 'video/mov'];
-    if (!allowedTypes.includes(req.file.mimetype)) {
-      return res.status(400).json({ 
-        message: 'Invalid video file type. Allowed: MP4, WebM, OGG, AVI, MOV',
-        receivedType: req.file.mimetype,
-        allowedTypes
-      });
-    }
-
-    // Check file size (max 200MB)
-    const maxSize = 200 * 1024 * 1024; // 200MB
-    if (req.file.size > maxSize) {
-      return res.status(400).json({ 
-        message: 'Video file too large. Maximum size: 200MB',
-        receivedSize: req.file.size,
-        maxSize
-      });
-    }
-
-    // Ensure uploads directory exists
-    const fs = require('fs');
-    const path = require('path');
-    const uploadsDir = path.join(__dirname, '../../uploads');
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
-
-    // Verify file was actually saved
-    if (!fs.existsSync(req.file.path)) {
-      return res.status(500).json({ 
-        message: 'Failed to save video file. Please try again.',
-        filePath: req.file.path
-      });
-    }
-
     const videoUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
     
     res.json({
@@ -304,16 +319,10 @@ exports.uploadCourseVideo = async (req, res) => {
       filename: req.file.filename,
       originalName: req.file.originalname,
       size: req.file.size,
-      mimetype: req.file.mimetype,
-      filePath: req.file.path
+      mimetype: req.file.mimetype
     });
   } catch (err) {
-    console.error('Video upload error:', err);
-    res.status(500).json({ 
-      message: 'Server error during video upload.', 
-      error: err.message,
-      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
-    });
+    res.status(500).json({ message: 'Server error during video upload.' });
   }
 };
 
@@ -328,12 +337,6 @@ exports.uploadCourseThumbnail = async (req, res) => {
       return res.status(400).json({ message: 'No thumbnail image uploaded.' });
     }
 
-    // Check file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowedTypes.includes(req.file.mimetype)) {
-      return res.status(400).json({ message: 'Invalid image file type. Allowed: JPEG, PNG, GIF, WebP' });
-    }
-
     const thumbnailUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
     
     res.json({
@@ -343,6 +346,6 @@ exports.uploadCourseThumbnail = async (req, res) => {
       originalName: req.file.originalname
     });
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
-}; 
+};

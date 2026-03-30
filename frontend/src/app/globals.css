@@ -250,6 +250,19 @@ The rest of the file remains the same, as it will now use your new color variabl
     align-items: center;
   }
 
+  /* Form & Button Component Classes */
+  .input-field {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors bg-white text-gray-900;
+  }
+  
+  .btn-primary {
+    @apply px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors focus:ring-4 focus:ring-indigo-300 shadow-sm disabled:opacity-50;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 bg-white text-gray-700 border border-gray-300 font-medium rounded-lg hover:bg-gray-50 transition-colors focus:ring-4 focus:ring-gray-100 shadow-sm disabled:opacity-50;
+  }
+
   /* State Components - Gentler colors, clear but not alarming */
   .loading {
     position: relative;

@@ -1,5 +1,6 @@
 const Message = require('../models/Message');
 const User = require('../models/User');
+const mongoose = require('mongoose');
 
 // Send a message
 exports.sendMessage = async (req, res) => {
@@ -19,17 +20,18 @@ exports.sendMessage = async (req, res) => {
     await message.populate('recipient', 'name email role');
     res.status(201).json(message);
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
-// Get all messages between logged-in user and another user
+// Get messages between logged-in user and another user (with pagination)
 exports.getMessages = async (req, res) => {
   try {
-    const { userId, studentId } = req.query;
+    const { userId, studentId, page = 1, limit = 50 } = req.query;
     if (!userId) {
       return res.status(400).json({ message: 'userId is required.' });
     }
+    const skip = (page - 1) * limit;
     const filter = {
       $or: [
         { sender: req.user.userId, recipient: userId },
@@ -40,19 +42,35 @@ exports.getMessages = async (req, res) => {
       filter.student = studentId;
     }
     const messages = await Message.find(filter)
-      .sort({ timestamp: 1 })
+      .sort({ timestamp: -1 })
+      .skip(skip)
+      .limit(parseInt(limit))
       .populate('sender', 'name email role')
       .populate('recipient', 'name email role');
-    res.json(messages);
+
+    const total = await Message.countDocuments(filter);
+    
+    // Return in chronological order for UI
+    res.json({
+      messages: messages.reverse(),
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / limit),
+        totalItems: total
+      }
+    });
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
-// Get messages with a specific user (by recipient ID)
+// Get messages with a specific user (by recipient ID, with pagination)
 exports.getMessagesWithUser = async (req, res) => {
   try {
     const { recipientId } = req.params;
+    const { page = 1, limit = 50 } = req.query;
+    const skip = (page - 1) * limit;
+
     const filter = {
       $or: [
         { sender: req.user.userId, recipient: recipientId },
@@ -60,81 +78,124 @@ exports.getMessagesWithUser = async (req, res) => {
       ],
     };
     const messages = await Message.find(filter)
-      .sort({ timestamp: 1 })
+      .sort({ timestamp: -1 })
+      .skip(skip)
+      .limit(parseInt(limit))
       .populate('sender', 'name email role')
       .populate('recipient', 'name email role');
-    res.json(messages);
+
+    const total = await Message.countDocuments(filter);
+
+    res.json({
+      messages: messages.reverse(),
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / limit),
+        totalItems: total
+      }
+    });
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
-// Get all conversations for the logged-in user
+// Get all conversations for the logged-in user (using aggregation pipeline)
 exports.getConversations = async (req, res) => {
   try {
-    // Get all messages where the user is either sender or recipient
-    const messages = await Message.find({
-      $or: [
-        { sender: req.user.userId },
-        { recipient: req.user.userId }
-      ]
-    })
-    .sort({ timestamp: -1 })
-    .populate('sender', 'name email role')
-    .populate('recipient', 'name email role');
+    const userId = new mongoose.Types.ObjectId(req.user.userId);
 
-    // Group messages by conversation (other participant)
-    const conversationsMap = new Map();
-    
-    messages.forEach(message => {
-      const otherUserId = message.sender._id.toString() === req.user.userId 
-        ? message.recipient._id.toString() 
-        : message.sender._id.toString();
-      
-      if (!conversationsMap.has(otherUserId)) {
-        // Calculate unread count for this conversation
-        const unreadCount = messages.filter(m => 
-          m.recipient._id.toString() === req.user.userId && 
-          m.sender._id.toString() === otherUserId && 
-          !m.read
-        ).length;
-
-        conversationsMap.set(otherUserId, {
-          _id: otherUserId,
-          participants: [
-            message.sender._id.toString() === req.user.userId ? message.recipient : message.sender,
-            message.sender._id.toString() === req.user.userId ? message.sender : message.recipient
-          ],
+    const conversations = await Message.aggregate([
+      // Match all messages involving the current user
+      {
+        $match: {
+          $or: [
+            { sender: userId },
+            { recipient: userId }
+          ]
+        }
+      },
+      // Sort by most recent first
+      { $sort: { timestamp: -1 } },
+      // Create a conversationKey that groups messages between the same two users
+      {
+        $addFields: {
+          otherUser: {
+            $cond: {
+              if: { $eq: ['$sender', userId] },
+              then: '$recipient',
+              else: '$sender'
+            }
+          }
+        }
+      },
+      // Group by the other user
+      {
+        $group: {
+          _id: '$otherUser',
+          lastMessage: { $first: '$$ROOT' },
+          unreadCount: {
+            $sum: {
+              $cond: [
+                { $and: [
+                  { $eq: ['$recipient', userId] },
+                  { $eq: ['$read', false] }
+                ]},
+                1,
+                0
+              ]
+            }
+          }
+        }
+      },
+      // Sort conversations by last message timestamp
+      { $sort: { 'lastMessage.timestamp': -1 } },
+      // Lookup the other user's details
+      {
+        $lookup: {
+          from: 'users',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'otherUserInfo',
+          pipeline: [
+            { $project: { name: 1, email: 1, role: 1, avatar: 1 } }
+          ]
+        }
+      },
+      { $unwind: '$otherUserInfo' },
+      // Lookup the sender details for the last message
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'lastMessage.sender',
+          foreignField: '_id',
+          as: 'lastMessageSender',
+          pipeline: [
+            { $project: { name: 1 } }
+          ]
+        }
+      },
+      { $unwind: '$lastMessageSender' },
+      // Project the final shape
+      {
+        $project: {
+          _id: 1,
+          participants: ['$otherUserInfo'],
           lastMessage: {
-            content: message.content,
-            createdAt: message.timestamp,
+            content: '$lastMessage.content',
+            createdAt: '$lastMessage.timestamp',
             sender: {
-              _id: message.sender._id,
-              name: message.sender.name
+              _id: '$lastMessageSender._id',
+              name: '$lastMessageSender.name'
             }
           },
-          unreadCount
-        });
-      } else {
-        // Update last message if this message is more recent
-        const conversation = conversationsMap.get(otherUserId);
-        if (message.timestamp > conversation.lastMessage.createdAt) {
-          conversation.lastMessage = {
-            content: message.content,
-            createdAt: message.timestamp,
-            sender: {
-              _id: message.sender._id,
-              name: message.sender.name
-            }
-          };
+          unreadCount: 1
         }
       }
-    });
+    ]);
 
-    const conversations = Array.from(conversationsMap.values());
     res.json(conversations);
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
@@ -157,7 +218,7 @@ exports.markMessagesAsRead = async (req, res) => {
     
     res.json({ message: 'Messages marked as read' });
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
@@ -171,7 +232,7 @@ exports.getUnreadCount = async (req, res) => {
     
     res.json({ unreadCount: count });
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
@@ -187,6 +248,6 @@ exports.getUnreadCountForUser = async (req, res) => {
     
     res.json({ unreadCount: count });
   } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
+    res.status(500).json({ message: 'Server error.' });
   }
-}; 
+};

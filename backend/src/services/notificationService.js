@@ -16,6 +16,17 @@ class NotificationService {
     }
   }
 
+  // Create notifications in bulk for multiple recipients
+  static async createBulkNotifications(notificationsArray) {
+    try {
+      if (!notificationsArray.length) return [];
+      return await Notification.insertMany(notificationsArray, { ordered: false });
+    } catch (error) {
+      console.error('Error creating bulk notifications:', error);
+      throw error;
+    }
+  }
+
   // Collaboration request approved
   static async notifyCollaborationRequestApproved(request, approvedBy) {
     const student = await Student.findById(request.student);
@@ -65,53 +76,47 @@ class NotificationService {
     const requester = await User.findById(request.requester);
     
     // Find admin users
-    const adminUsers = await User.find({ isAdmin: true });
+    const adminUsers = await User.find({ isAdmin: true }).select('_id');
     
-    for (const admin of adminUsers) {
-      await this.createNotification({
-        recipient: admin._id,
-        type: 'collaboration_request_received',
-        title: 'New Collaboration Request',
-        message: `${requester?.name || 'Unknown'} has requested collaboration access for student ${student?.name || 'Unknown'}.`,
-        data: {
-          studentName: student?.name,
-          requesterName: requester?.name,
-          requestType: request.requestType,
-          reason: request.reason
-        },
-        relatedStudent: request.student,
-        relatedUser: request.requester,
-        relatedCollaborationRequest: request._id
-      });
-    }
+    const notifications = adminUsers.map(admin => ({
+      recipient: admin._id,
+      type: 'collaboration_request_received',
+      title: 'New Collaboration Request',
+      message: `${requester?.name || 'Unknown'} has requested collaboration access for student ${student?.name || 'Unknown'}.`,
+      data: {
+        studentName: student?.name,
+        requesterName: requester?.name,
+        requestType: request.requestType,
+        reason: request.reason
+      },
+      relatedStudent: request.student,
+      relatedUser: request.requester,
+      relatedCollaborationRequest: request._id
+    }));
+
+    await this.createBulkNotifications(notifications);
   }
 
   // Note added to assigned student
   static async notifyNoteAdded(note, studentId, createdBy) {
     const student = await Student.findById(studentId);
     const creator = await User.findById(createdBy);
-    // Notify all users assigned to this student (including the creator)
-    if (student && student.assignedUsers) {
-      for (const assignedUserId of student.assignedUsers) {
-        try {
-          await this.createNotification({
-            recipient: assignedUserId,
-            type: 'note_added',
-            title: 'New Note Added',
-            message: `${creator?.name || 'Unknown'} added a note for student ${student.name}.`,
-            data: {
-              studentName: student.name,
-              creatorName: creator?.name,
-              noteContent: note.content.substring(0, 100) + (note.content.length > 100 ? '...' : '')
-            },
-            relatedStudent: studentId,
-            relatedUser: createdBy
-          });
-          console.log(`[Notification] Note added: sent to user ${assignedUserId} for student ${studentId}`);
-        } catch (err) {
-          console.error(`[Notification] Error sending note notification to user ${assignedUserId}:`, err);
-        }
-      }
+    if (student && student.assignedUsers && student.assignedUsers.length > 0) {
+      const notifications = student.assignedUsers.map(assignedUserId => ({
+        recipient: assignedUserId,
+        type: 'note_added',
+        title: 'New Note Added',
+        message: `${creator?.name || 'Unknown'} added a note for student ${student.name}.`,
+        data: {
+          studentName: student.name,
+          creatorName: creator?.name,
+          noteContent: note.content.substring(0, 100) + (note.content.length > 100 ? '...' : '')
+        },
+        relatedStudent: studentId,
+        relatedUser: createdBy
+      }));
+
+      await this.createBulkNotifications(notifications);
     }
   }
 
@@ -119,29 +124,23 @@ class NotificationService {
   static async notifyAppointmentAdded(appointment, studentId, createdBy) {
     const student = await Student.findById(studentId);
     const creator = await User.findById(createdBy);
-    // Notify all users assigned to this student (including the creator)
-    if (student && student.assignedUsers) {
-      for (const assignedUserId of student.assignedUsers) {
-        try {
-          await this.createNotification({
-            recipient: assignedUserId,
-            type: 'appointment_added',
-            title: 'New Appointment Scheduled',
-            message: `${creator?.name || 'Unknown'} scheduled an appointment for student ${student.name}.`,
-            data: {
-              studentName: student.name,
-              creatorName: creator?.name,
-              appointmentTitle: appointment.title,
-              appointmentTime: appointment.startTime
-            },
-            relatedStudent: studentId,
-            relatedUser: createdBy
-          });
-          console.log(`[Notification] Appointment added: sent to user ${assignedUserId} for student ${studentId}`);
-        } catch (err) {
-          console.error(`[Notification] Error sending appointment notification to user ${assignedUserId}:`, err);
-        }
-      }
+    if (student && student.assignedUsers && student.assignedUsers.length > 0) {
+      const notifications = student.assignedUsers.map(assignedUserId => ({
+        recipient: assignedUserId,
+        type: 'appointment_added',
+        title: 'New Appointment Scheduled',
+        message: `${creator?.name || 'Unknown'} scheduled an appointment for student ${student.name}.`,
+        data: {
+          studentName: student.name,
+          creatorName: creator?.name,
+          appointmentTitle: appointment.title,
+          appointmentTime: appointment.startTime
+        },
+        relatedStudent: studentId,
+        relatedUser: createdBy
+      }));
+
+      await this.createBulkNotifications(notifications);
     }
   }
 
@@ -149,29 +148,23 @@ class NotificationService {
   static async notifyProgressReportAdded(report, studentId, createdBy) {
     const student = await Student.findById(studentId);
     const creator = await User.findById(createdBy);
-    // Notify all users assigned to this student (including the creator)
-    if (student && student.assignedUsers) {
-      for (const assignedUserId of student.assignedUsers) {
-        try {
-          await this.createNotification({
-            recipient: assignedUserId,
-            type: 'progress_report_added',
-            title: 'New Progress Report',
-            message: `${creator?.name || 'Unknown'} added a progress report for student ${student.name}.`,
-            data: {
-              studentName: student.name,
-              creatorName: creator?.name,
-              reportCategory: report.category,
-              reportDate: report.reportDate
-            },
-            relatedStudent: studentId,
-            relatedUser: createdBy
-          });
-          console.log(`[Notification] Progress report added: sent to user ${assignedUserId} for student ${studentId}`);
-        } catch (err) {
-          console.error(`[Notification] Error sending progress report notification to user ${assignedUserId}:`, err);
-        }
-      }
+    if (student && student.assignedUsers && student.assignedUsers.length > 0) {
+      const notifications = student.assignedUsers.map(assignedUserId => ({
+        recipient: assignedUserId,
+        type: 'progress_report_added',
+        title: 'New Progress Report',
+        message: `${creator?.name || 'Unknown'} added a progress report for student ${student.name}.`,
+        data: {
+          studentName: student.name,
+          creatorName: creator?.name,
+          reportCategory: report.category,
+          reportDate: report.reportDate
+        },
+        relatedStudent: studentId,
+        relatedUser: createdBy
+      }));
+
+      await this.createBulkNotifications(notifications);
     }
   }
 
@@ -237,73 +230,73 @@ class NotificationService {
     });
   }
 
-  // New course created
+  // New course created - uses bulk insert
   static async notifyCourseCreated(course, createdBy) {
     const creator = await User.findById(createdBy);
     
-    // Notify all users except the creator
-    const users = await User.find({ _id: { $ne: createdBy } });
+    // Only get user IDs, not full documents
+    const userIds = await User.find({ _id: { $ne: createdBy } }).select('_id').lean();
     
-    for (const user of users) {
-      await this.createNotification({
-        recipient: user._id,
-        type: 'course_created',
-        title: 'New Course Available',
-        message: `${creator?.name || 'Unknown'} created a new course: ${course.title}.`,
-        data: {
-          courseTitle: course.title,
-          creatorName: creator?.name
-        },
-        relatedCourse: course._id,
-        relatedUser: createdBy
-      });
-    }
+    const notifications = userIds.map(user => ({
+      recipient: user._id,
+      type: 'course_created',
+      title: 'New Course Available',
+      message: `${creator?.name || 'Unknown'} created a new course: ${course.title}.`,
+      data: {
+        courseTitle: course.title,
+        creatorName: creator?.name
+      },
+      relatedCourse: course._id,
+      relatedUser: createdBy
+    }));
+
+    await this.createBulkNotifications(notifications);
   }
 
-  // Course published
+  // Course published - uses bulk insert
   static async notifyCoursePublished(course, publishedBy) {
     const publisher = await User.findById(publishedBy);
     
-    // Notify all users except the publisher
-    const users = await User.find({ _id: { $ne: publishedBy } });
+    // Only get user IDs, not full documents
+    const userIds = await User.find({ _id: { $ne: publishedBy } }).select('_id').lean();
     
-    for (const user of users) {
-      await this.createNotification({
-        recipient: user._id,
-        type: 'course_published',
-        title: 'Course Published',
-        message: `Course "${course.title}" has been published by ${publisher?.name || 'Admin'}.`,
-        data: {
-          courseTitle: course.title,
-          publisherName: publisher?.name
-        },
-        relatedCourse: course._id,
-        relatedUser: publishedBy
-      });
-    }
+    const notifications = userIds.map(user => ({
+      recipient: user._id,
+      type: 'course_published',
+      title: 'Course Published',
+      message: `Course "${course.title}" has been published by ${publisher?.name || 'Admin'}.`,
+      data: {
+        courseTitle: course.title,
+        publisherName: publisher?.name
+      },
+      relatedCourse: course._id,
+      relatedUser: publishedBy
+    }));
+
+    await this.createBulkNotifications(notifications);
   }
 
-  // System announcement
+  // System announcement - uses bulk insert
   static async notifySystemAnnouncement(title, message, recipients = null) {
-    let users;
+    let userIds;
     
     if (recipients) {
-      users = await User.find({ _id: { $in: recipients } });
+      userIds = await User.find({ _id: { $in: recipients } }).select('_id').lean();
     } else {
-      users = await User.find();
+      userIds = await User.find().select('_id').lean();
     }
     
-    for (const user of users) {
-      await this.createNotification({
-        recipient: user._id,
-        type: 'system_announcement',
-        title,
-        message,
-        data: {
-          isSystemAnnouncement: true
-        }
-      });
-    }
+    const notifications = userIds.map(user => ({
+      recipient: user._id,
+      type: 'system_announcement',
+      title,
+      message,
+      data: {
+        isSystemAnnouncement: true
+      }
+    }));
+
+    await this.createBulkNotifications(notifications);
   }
 
   // Course access request received (for admin)
@@ -312,23 +305,23 @@ class NotificationService {
     const requester = await User.findById(accessRequest.user);
     
     // Find admin users
-    const adminUsers = await User.find({ isAdmin: true });
+    const adminUsers = await User.find({ isAdmin: true }).select('_id');
     
-    for (const admin of adminUsers) {
-      await this.createNotification({
-        recipient: admin._id,
-        type: 'course_access_request',
-        title: 'New Course Access Request',
-        message: `${requester?.name || 'Unknown'} has requested access to course "${course?.title || 'Unknown'}".`,
-        data: {
-          courseTitle: course?.title,
-          requesterName: requester?.name,
-          requestReason: accessRequest.requestReason
-        },
-        relatedCourse: accessRequest.course,
-        relatedUser: accessRequest.user
-      });
-    }
+    const notifications = adminUsers.map(admin => ({
+      recipient: admin._id,
+      type: 'course_access_request',
+      title: 'New Course Access Request',
+      message: `${requester?.name || 'Unknown'} has requested access to course "${course?.title || 'Unknown'}".`,
+      data: {
+        courseTitle: course?.title,
+        requesterName: requester?.name,
+        requestReason: accessRequest.requestReason
+      },
+      relatedCourse: accessRequest.course,
+      relatedUser: accessRequest.user
+    }));
+
+    await this.createBulkNotifications(notifications);
   }
 
   // Course access approved
@@ -372,4 +365,4 @@ class NotificationService {
   }
 }
 
-module.exports = NotificationService; 
+module.exports = NotificationService;

@@ -11,4 +11,7 @@ const activitySchema = new mongoose.Schema({
   // Add more fields as needed
 });
 
+// Indexes for efficient queries
+activitySchema.index({ type: 1, category: 1 });
+
 module.exports = mongoose.model('Activity', activitySchema); 

@@ -57,8 +57,25 @@ exports.updateUserProfile = async (req, res) => {
     if (req.user.userId !== req.params.id && !req.user.isAdmin) {
       return res.status(403).json({ message: 'Unauthorized' });
     }
-    const updates = { ...req.body };
-    delete updates.password;
+
+    // Whitelist allowed fields to prevent privilege escalation
+    const allowedFieldsSelf = [
+      'name', 'phone', 'bio', 'location', 'dateOfBirth', 'gender',
+      'qualifications', 'yearsOfExperience', 'workplace', 'specialization',
+      'childName', 'childAge', 'childDiagnosis',
+      'school', 'grade', 'supportNeeds', 'language'
+    ];
+    // Admin can also update role and isAdmin
+    const allowedFieldsAdmin = [...allowedFieldsSelf, 'role', 'isAdmin'];
+
+    const allowedFields = req.user.isAdmin ? allowedFieldsAdmin : allowedFieldsSelf;
+    const updates = {};
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        updates[field] = req.body[field];
+      }
+    }
+
     const user = await User.findByIdAndUpdate(req.params.id, updates, { new: true, runValidators: true }).select('-password');
     if (!user) return res.status(404).json({ message: 'User not found' });
     res.json(user);
@@ -106,4 +123,4 @@ exports.uploadAvatar = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
-}; 
+};

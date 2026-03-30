@@ -60,7 +60,10 @@ app.use(cors(corsOptions));
 // Handle preflight requests for all routes with the same CORS config
 app.options('*', cors(corsOptions));
 app.use(express.json());
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  contentSecurityPolicy: false
+}));
 
 // Rate limiting: 1000 requests per 15 minutes per IP
 app.use(rateLimit({
@@ -155,10 +158,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // MongoDB connection
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+mongoose.connect(process.env.MONGODB_URI)
 .then(() => console.log('MongoDB connected'))
 .catch((err) => console.error('MongoDB connection error:', err));
 

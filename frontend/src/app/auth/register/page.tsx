@@ -89,30 +89,6 @@ export default function RegisterPage() {
     }
   }
 
-  // Optional: Auto-login after registration
-  const handleAutoLogin = async () => {
-    setLoading(true)
-    try {
-      const loginResponse = await axios.post(apiUrl('/api/auth/login'), {
-        email: formData.email,
-        password: formData.password
-      })
-      
-      // Store token and user data
-      localStorage.setItem('token', loginResponse.data.token)
-      localStorage.setItem('user', JSON.stringify(loginResponse.data.user))
-      
-      toast.success(t('registrationSuccessful'))
-      router.push('/dashboard')
-    } catch (error: any) {
-      console.error('Auto-login error:', error)
-      toast.error(t('registrationFailed'))
-      router.push('/auth/login')
-    } finally {
-      setLoading(false)
-    }
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="absolute top-4 right-4">

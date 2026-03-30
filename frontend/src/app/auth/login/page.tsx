@@ -18,11 +18,6 @@ export default function LoginPage() {
     password: ''
   })
   const [loading, setLoading] = useState(false)
-  console.log('Environment check:', {
-    apiUrl: process.env.NEXT_PUBLIC_API_URL,
-    nodeEnv: process.env.NODE_ENV,
-    allEnv: process.env
-  });
 
   // Clear any existing session data when login page loads
   useEffect(() => {

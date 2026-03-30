@@ -30,19 +30,17 @@ const courseSchema = new mongoose.Schema({
   requirements: [String], // What students need to know
   outcomes: [String], // What students will learn
   
-  // Course status
-  status: { 
-    type: String, 
-    enum: ['draft', 'published', 'archived'], 
-    default: 'draft' 
-  },
+  // Course status - consolidated to single isPublished field
   isPublished: { type: Boolean, default: false },
   
   // Metadata
   tags: [String],
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
-});
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
+}, { timestamps: true });
 
-module.exports = mongoose.model('Course', courseSchema); 
+// Indexes for better query performance
+courseSchema.index({ createdBy: 1, createdAt: -1 });
+courseSchema.index({ isPublished: 1, createdAt: -1 });
+courseSchema.index({ category: 1 });
+
+module.exports = mongoose.model('Course', courseSchema);
