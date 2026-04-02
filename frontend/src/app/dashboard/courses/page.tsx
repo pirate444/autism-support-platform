@@ -107,7 +107,8 @@ export default function CoursesPage() {
         apiUrl(`/api/courses/?${params.toString()}`),
         { headers: getAuthHeaders() }
       )
-      setCourses(response.data)
+      console.log(response.data)
+      setCourses((response.data as any).courses || response.data)
     } catch (error: any) {
       console.error('Error loading courses:', error)
       toast.error(t('failedToLoadCourses'))

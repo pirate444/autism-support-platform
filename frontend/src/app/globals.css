@@ -116,10 +116,13 @@ Typography, base element styles, and resets.
   }
 
   body {
-    font-family: 'Comic Sans MS', 'Open Sans', 'Arial', sans-serif; /* Child-friendly font suggestion */
-    line-height: 1.8; /* Increased line height for readability */
-    color: var(--color-text-primary);
-    background-color: var(--color-background);
+    font-family: 'Nunito', 'Quicksand', 'Open Sans', sans-serif;
+    line-height: 1.6;
+    color: #374151; /* Dark gray for soft gradients */
+    background-color: #fdfdfd;
+    /* Soft global gradient from UNIA */
+    background-image: linear-gradient(to right bottom, #e0f2fe, #fce7f3);
+    background-attachment: fixed;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -252,17 +255,31 @@ The rest of the file remains the same, as it will now use your new color variabl
 
   /* Form & Button Component Classes */
   .input-field {
-    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors bg-white text-gray-900;
+    @apply w-full px-4 py-3 border-2 border-transparent bg-white/70 backdrop-blur-sm rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-400 focus:border-purple-400 focus:outline-none transition-all text-gray-800 shadow-sm;
   }
   
   .btn-primary {
-    @apply px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors focus:ring-4 focus:ring-indigo-300 shadow-sm disabled:opacity-50;
+    @apply px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full hover:shadow-lg hover:-translate-y-0.5 transition-all focus:ring-4 focus:ring-pink-300 shadow-md disabled:opacity-50 border-none;
   }
 
   .btn-secondary {
-    @apply px-6 py-3 bg-white text-gray-700 border border-gray-300 font-medium rounded-lg hover:bg-gray-50 transition-colors focus:ring-4 focus:ring-gray-100 shadow-sm disabled:opacity-50;
+    @apply px-6 py-3 bg-white text-gray-700 border-none shadow-md font-bold rounded-full hover:shadow-lg hover:-translate-y-0.5 hover:bg-gray-50 transition-all focus:ring-4 focus:ring-gray-200 disabled:opacity-50;
   }
 
+  .btn-teal {
+    @apply px-6 py-3 bg-gradient-to-r from-teal-400 to-blue-400 text-white font-bold rounded-full hover:shadow-lg hover:-translate-y-0.5 transition-all focus:ring-4 focus:ring-teal-300 shadow-md disabled:opacity-50 border-none;
+  }
+
+  /* UNIA Custom layout classes */
+  .unia-card {
+    @apply bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-unia-card hover:shadow-unia-card-hover transition-all border border-white/50 relative overflow-hidden;
+  }
+  .unia-pill-header {
+    @apply bg-blue-100 text-blue-900 px-6 py-3 rounded-t-2xl sm:rounded-full font-bold uppercase tracking-wider text-sm flex justify-between items-center shadow-sm border border-white/50 mb-3;
+  }
+  .unia-table-row {
+    @apply bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow mb-3 flex flex-col sm:flex-row justify-between items-center border border-gray-100;
+  }
   /* State Components - Gentler colors, clear but not alarming */
   .loading {
     position: relative;

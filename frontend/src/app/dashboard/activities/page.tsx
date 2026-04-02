@@ -99,7 +99,7 @@ export default function ActivitiesPage() {
         apiUrl(`/api/activities/?${params.toString()}`),
         { headers: getAuthHeaders() }
       )
-      setActivities(response.data)
+      setActivities(response.data.activities || response.data)
     } catch (error: any) {
       console.error('Error loading activities:', error)
       toast.error('Failed to load activities')

@@ -179,7 +179,7 @@ export default function CollaborationPage() {
   const response = await axios.get(apiUrl(endpoint), {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setStudents(response.data);
+      setStudents(response.data.students || response.data);
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Failed to fetch students");
     } finally {

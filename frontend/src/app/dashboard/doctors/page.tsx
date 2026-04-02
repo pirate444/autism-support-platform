@@ -58,7 +58,7 @@ export default function DoctorsPage() {
       
       // Load unread counts for each doctor
       const doctorsWithUnreadCounts = await Promise.all(
-        response.data.map(async (doctor: Doctor) => {
+        ((response.data as any).doctors || response.data).map(async (doctor: Doctor) => {
           try {
             const unreadResponse = await axios.get<{ unreadCount: number }>(
               apiUrl(`/api/messages/unread/count/${doctor._id}`),
@@ -125,151 +125,142 @@ export default function DoctorsPage() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Intelligent Search Section */}
-        <div className="card mb-8">
-          <div className="flex justify-center mb-2">
-            <span className="text-3xl">🩺</span>
+        <div className="card shadow-unia-card border-none rounded-[2rem] bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 mb-8 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl pointer-events-none -mr-10 -mt-10"></div>
+          
+          <div className="flex justify-center mb-4">
+            <span className="text-4xl animate-bounce">🩺</span>
           </div>
-          <h2 className="text-xl font-extrabold text-pink-600 mb-4 text-center drop-shadow">Search Healthcare Professionals</h2>
-          <div className="relative">
+          <h2 className="text-3xl font-black text-unia-purple tracking-tight mb-6 text-center drop-shadow-sm">
+            Search Healthcare Professionals
+          </h2>
+          
+          <div className="relative max-w-3xl mx-auto">
             <input
               type="text"
               placeholder="Search by name, email, role, or specialization..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="input-field w-full pl-10"
+              className="w-full pl-14 pr-6 py-4 bg-white/90 backdrop-blur border-2 border-white focus:border-unia-purple shadow-sm rounded-2xl text-lg transition-all outline-none"
             />
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+            <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+              <span className="text-2xl opacity-60">🔍</span>
             </div>
+            {searchQuery && (
+              <div className="absolute top-full left-0 mt-3 text-sm font-bold text-unia-purple bg-white py-1 px-4 rounded-full shadow-sm">
+                ✨ Found {filteredDoctors.length} professional{filteredDoctors.length !== 1 ? 's' : ''} matching "{searchQuery}"
+              </div>
+            )}
           </div>
-          {searchQuery && (
-            <div className="mt-2 text-sm text-gray-600">
-              Found {filteredDoctors.length} professional{filteredDoctors.length !== 1 ? 's' : ''} matching "{searchQuery}"
-            </div>
-          )}
         </div>
 
-        {/* Doctors List */}
-        <div className="card">
-          <div className="flex justify-center mb-2">
-            <span className="text-3xl">👨‍⚕️👩‍⚕️</span>
-          </div>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-extrabold text-blue-600 drop-shadow">Healthcare Professionals</h2>
-            <span className="text-sm text-blue-600 font-bold">
+        {/* Doctors Grid */}
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-6 px-2">
+            <h2 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+              <span className="text-3xl">👨‍⚕️👩‍⚕️</span> Healthcare Professionals
+            </h2>
+            <span className="bg-blue-100 text-blue-800 px-4 py-1.5 rounded-full font-bold text-sm shadow-sm">
               {filteredDoctors.length} professional{filteredDoctors.length !== 1 ? 's' : ''} found
             </span>
           </div>
           
           {loading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-              <p className="mt-2 text-gray-600">Loading doctors...</p>
+            <div className="flex justify-center items-center py-12">
+              <div className="text-6xl animate-bounce">🩺</div>
             </div>
           ) : filteredDoctors.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-600">
+            <div className="text-center py-12 bg-white/50 rounded-3xl border border-white">
+              <span className="text-5xl mb-4 block opacity-50">🔍</span>
+              <p className="text-xl font-bold text-slate-600">
                 {searchQuery 
-                  ? `No doctors found matching "${searchQuery}". Try a different search term.`
-                  : 'No doctors found. Please check back later.'
+                  ? `No doctors found matching "${searchQuery}".`
+                  : 'No doctors found.'
                 }
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Role
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Specialization
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Email
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredDoctors.map((doctor) => (
-                    <tr key={doctor._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {doctor.name}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {getRoleDisplayName(doctor.role)}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {doctor.specialization || 'Not specified'}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {doctor.email}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button 
-                          onClick={() => handleViewProfile(doctor)}
-                          className="text-primary-600 hover:text-primary-900 mr-4"
-                        >
-                          View Profile
-                        </button>
-                        <button 
-                          onClick={() => handleContact(doctor)}
-                          className="text-primary-600 hover:text-primary-900 relative"
-                        >
-                          Contact
-                          {doctor.unreadCount && doctor.unreadCount > 0 && (
-                            <NotificationBadge count={doctor.unreadCount} className="absolute -top-2 -right-2" />
-                          )}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredDoctors.map((doctor, index) => {
+                const colors = ['bg-unia-purple-light text-unia-purple', 'bg-blue-100 text-blue-700', 'bg-green-100 text-green-700', 'bg-orange-100 text-orange-700'];
+                const colorTheme = colors[index % colors.length];
+                
+                return (
+                <div key={doctor._id} className="bg-white rounded-[2rem] shadow-unia-card hover:shadow-unia-card-hover transition-all duration-300 hover:-translate-y-2 border border-slate-100 p-6 flex flex-col relative overflow-hidden group">
+                  {/* Top Background shape */}
+                  <div className={`absolute top-0 right-0 w-32 h-32 -mt-10 -mr-10 rounded-full blur-3xl opacity-50 ${colorTheme.split(' ')[0]}`}></div>
+                  
+                  <div className="flex items-center gap-4 mb-5 relative z-10">
+                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-black shadow-sm transform -rotate-3 group-hover:rotate-0 transition-transform ${colorTheme}`}>
+                      {doctor.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-extrabold text-slate-800 leading-tight">
+                        {doctor.name}
+                      </h3>
+                      <p className="text-sm font-bold text-slate-500">
+                        {getRoleDisplayName(doctor.role)}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col gap-2 mb-6 flex-grow">
+                    <div className="bg-slate-50 rounded-xl px-4 py-2.5 flex items-center gap-3 border border-slate-100">
+                       <span className="text-lg">⭐</span>
+                       <span className="text-sm font-bold text-slate-700 line-clamp-1">{doctor.specialization || 'General Specialist'}</span>
+                    </div>
+                    <div className="bg-slate-50 rounded-xl px-4 py-2.5 flex items-center gap-3 border border-slate-100">
+                       <span className="text-lg">✉️</span>
+                       <span className="text-sm font-bold text-slate-700 truncate">{doctor.email}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-3 mt-auto relative z-10">
+                    <button 
+                      onClick={() => handleViewProfile(doctor)}
+                      className="flex-1 bg-white border-2 border-slate-200 text-slate-700 font-bold py-2.5 rounded-xl hover:border-unia-purple hover:text-unia-purple transition-all"
+                    >
+                      Profile
+                    </button>
+                    <button 
+                      onClick={() => handleContact(doctor)}
+                      className="flex-1 btn-primary py-2.5 px-4 flex justify-center items-center gap-2 relative"
+                    >
+                      💬 Chat
+                      {doctor.unreadCount && doctor.unreadCount > 0 && (
+                        <NotificationBadge count={doctor.unreadCount} className="absolute -top-2 -right-2 ring-2 ring-white" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )})}
             </div>
           )}
         </div>
 
         {/* Statistics */}
-        <div className="grid md:grid-cols-4 gap-6 mt-8">
-          <div className="card text-center">
-            <h3 className="text-2xl font-bold text-primary-600">{doctors.length}</h3>
-            <p className="text-gray-600">Total Professionals</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+          <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl p-6 text-center text-white shadow-unia-card transform hover:scale-105 transition-transform border-4 border-white">
+            <h3 className="text-3xl font-black mb-1">{doctors.length}</h3>
+            <p className="font-bold text-sm opacity-90">Total Providers</p>
           </div>
-          <div className="card text-center">
-            <h3 className="text-2xl font-bold text-green-600">
+          <div className="bg-gradient-to-br from-green-400 to-emerald-500 rounded-3xl p-6 text-center text-white shadow-unia-card transform hover:scale-105 transition-transform border-4 border-white">
+            <h3 className="text-3xl font-black mb-1">
               {doctors.filter(d => d.role === 'child_psychiatrist').length}
             </h3>
-            <p className="text-gray-600">Psychiatrists</p>
+            <p className="font-bold text-sm opacity-90">Psychiatrists</p>
           </div>
-          <div className="card text-center">
-            <h3 className="text-2xl font-bold text-blue-600">
+          <div className="bg-gradient-to-br from-blue-400 to-sky-500 rounded-3xl p-6 text-center text-white shadow-unia-card transform hover:scale-105 transition-transform border-4 border-white">
+            <h3 className="text-3xl font-black mb-1">
               {doctors.filter(d => d.role === 'speech_therapist').length}
             </h3>
-            <p className="text-gray-600">Speech Therapists</p>
+            <p className="font-bold text-sm opacity-90">Speech Therapy</p>
           </div>
-          <div className="card text-center">
-            <h3 className="text-2xl font-bold text-purple-600">
+          <div className="bg-gradient-to-br from-orange-400 to-amber-500 rounded-3xl p-6 text-center text-white shadow-unia-card transform hover:scale-105 transition-transform border-4 border-white">
+            <h3 className="text-3xl font-black mb-1">
               {doctors.filter(d => d.role === 'occupational_therapist').length}
             </h3>
-            <p className="text-gray-600">Occupational Therapists</p>
+            <p className="font-bold text-sm opacity-90">Occupational OT</p>
           </div>
         </div>
       </div>

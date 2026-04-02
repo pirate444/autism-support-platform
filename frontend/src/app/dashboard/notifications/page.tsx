@@ -36,10 +36,6 @@ export default function NotificationsPage() {
     }
   }, [])
 
-  const getAuthHeaders = () => {
-    // Deprecated: use getAuthHeaders from api utility
-    return getAuthHeaders();
-  }
 
   const loadNotifications = async () => {
     try {

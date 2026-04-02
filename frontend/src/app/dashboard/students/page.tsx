@@ -51,7 +51,7 @@ export default function StudentsPage() {
     dateOfBirth: '',
     ministryCode: ''
   })
-  
+
   // New state for student details and assignment
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
@@ -76,9 +76,9 @@ export default function StudentsPage() {
   }, [])
 
   // Check if user can add students
-  const canAddStudents = user?.role === 'school_support_assistant' || 
-                        user?.role === 'parent' || 
-                        user?.role === 'specialist_educator'
+  const canAddStudents = user?.role === 'school_support_assistant' ||
+    user?.role === 'parent' ||
+    user?.role === 'specialist_educator'
 
   // Check if user can assign professionals - only admin
   const canAssignProfessionals = user?.isAdmin === true
@@ -97,17 +97,17 @@ export default function StudentsPage() {
     try {
       // Admin sees all students, doctors and other professionals see only their assigned students
       const endpoint = user?.isAdmin ? '/api/students/' : '/api/students/my-assigned';
-      
+
       console.log('Loading students with endpoint:', endpoint, 'User isAdmin:', user?.isAdmin);
       console.log('User data:', user);
-      
+
       const response = await axios.get<Student[]>(
         apiUrl(endpoint),
         { headers: getAuthHeaders() }
       )
       console.log('Students loaded:', response.data);
-      console.log('Number of students loaded:', response.data.length);
-      setStudents(response.data)
+      console.log('Number of students loaded:', ((response.data as any).students || response.data).length);
+      setStudents((response.data as any).students || response.data)
     } catch (error: any) {
       console.error('Error loading students:', error)
       console.error('Error response:', error.response?.data)
@@ -120,14 +120,14 @@ export default function StudentsPage() {
   // Load unassigned students for parents
   const loadUnassignedStudents = async () => {
     if (user?.role !== 'parent') return;
-    
+
     setLoadingUnassigned(true);
     try {
       const response = await axios.get<Student[]>(
         apiUrl('/api/students/unassigned'),
         { headers: getAuthHeaders() }
       );
-      setUnassignedStudents(response.data);
+      setUnassignedStudents((response.data as any).students || response.data);
     } catch (error: any) {
       console.error('Error loading unassigned students:', error);
       toast.error(`${t('failedToLoadUnassignedStudents')}: ${error.response?.data?.message || error.message}`);
@@ -144,7 +144,7 @@ export default function StudentsPage() {
         {},
         { headers: getAuthHeaders() }
       );
-      
+
       toast.success(`${t('studentClaimedSuccessfully')}`);
       // Reload both assigned and unassigned students
       loadStudents();
@@ -184,7 +184,7 @@ export default function StudentsPage() {
   // Create new student
   const handleCreateStudent = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!createForm.name || !createForm.dateOfBirth) {
       toast.error(`${t('pleaseFillAllRequiredFields')}`);
       return
@@ -197,7 +197,7 @@ export default function StudentsPage() {
         createForm,
         { headers: getAuthHeaders() }
       )
-      
+
       console.log('Student created successfully:', response.data)
       toast.success(`${t('studentCreatedSuccessfully')}`);
       setShowCreateForm(false)
@@ -276,7 +276,7 @@ export default function StudentsPage() {
         { userIds: selectedProfessionals },
         { headers: getAuthHeaders() }
       )
-      
+
       toast.success(`${t('professionalsAssignedSuccessfully')}`);
       setShowAssignModal(false)
       setSelectedStudent(null)
@@ -290,7 +290,7 @@ export default function StudentsPage() {
   }
 
   const handleProfessionalToggle = (professionalId: string) => {
-    setSelectedProfessionals(prev => 
+    setSelectedProfessionals(prev =>
       prev.includes(professionalId)
         ? prev.filter(id => id !== professionalId)
         : [...prev, professionalId]
@@ -304,7 +304,7 @@ export default function StudentsPage() {
   const handleDeleteStudent = async (studentId: string) => {
     if (!window.confirm(`${t('confirmDeleteStudent')}`)) return;
     try {
-    await axios.delete(apiUrl(`/api/students/${studentId}`), { headers: getAuthHeaders() });
+      await axios.delete(apiUrl(`/api/students/${studentId}`), { headers: getAuthHeaders() });
       toast.success(`${t('studentDeletedSuccessfully')}`);
       setShowDetailsModal(false);
       loadStudents();
@@ -391,7 +391,7 @@ export default function StudentsPage() {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t('dateOfBirth')} *
@@ -418,7 +418,7 @@ export default function StudentsPage() {
                   placeholder={t('enterMinistryCodeOptional')}
                 />
               </div>
-              
+
               <div className="flex gap-4">
                 <button type="submit" className="btn-primary">
                   <span className="text-lg">🎈 {t('createStudent')}</span>
@@ -436,13 +436,21 @@ export default function StudentsPage() {
         )}
 
         {/* Students List */}
-        <div className="card bg-gradient-to-br from-blue-100 via-pink-100 to-yellow-100 border-4 border-blue-200 rounded-3xl">
-          <div className="flex justify-center mb-2">
-            <span className="text-3xl">👦👧</span>
+        <div className="card shadow-unia-card border-none rounded-[2rem] bg-white">
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
+            <h2 className="text-3xl font-black text-unia-purple tracking-tight flex items-center gap-3">
+              <span className="text-4xl">👦👧</span>
+              {user?.isAdmin ? t('allStudents') : t('myAssignedStudents')}
+            </h2>
+            {canAddStudents && !showCreateForm && (
+              <button 
+                onClick={() => setShowCreateForm(true)}
+                className="btn-primary flex items-center gap-2 mt-4 sm:mt-0"
+              >
+                <span className="text-xl">✨</span> {t('createNewStudent')}
+              </button>
+            )}
           </div>
-          <h2 className="text-xl font-extrabold text-blue-600 mb-4 text-center drop-shadow">
-            {user?.isAdmin ? t('allStudents') : t('myAssignedStudents')}
-          </h2>
           {/* Intelligent Search Bar */}
           <div className="mb-4 relative">
             <input
@@ -478,7 +486,7 @@ export default function StudentsPage() {
                     : t('noStudentsAssigned'))}
               </p>
               {user?.isAdmin && !searchQuery && (
-                <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+                <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-2xl">
                   <p className="text-sm text-yellow-800">
                     <strong>{t('debugInfo')}:</strong> {t('userId')}: {user?.id}, {t('role')}: {user?.role}, {t('isAdmin')}: {user?.isAdmin?.toString()}
                   </p>
@@ -486,70 +494,54 @@ export default function StudentsPage() {
               )}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('name')}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('dateOfBirth')}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('assignedProfessionals')}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('actions')}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredStudents.map((student) => (
-                    <tr key={student._id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
+            <div className="flex flex-col gap-4 mt-6">
+              {filteredStudents.map((student) => (
+                <div key={student._id} className="unia-table-row group">
+                  <div className="flex-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-2">
+                       <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                          <div className="w-10 h-10 bg-unia-purple-light text-unia-purple rounded-full flex items-center justify-center font-black">
+                            {student.name.charAt(0).toUpperCase()}
+                          </div>
                           {student.name}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {new Date(student.dateOfBirth).toLocaleDateString()}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {student.assignedUsers?.length || 0} {t('professionals')}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button 
-                          onClick={() => handleViewDetails(student)}
-                          className="text-primary-600 hover:text-primary-900 mr-4"
-                        >
-                          {t('viewDetails')}
-                        </button>
-                        {canAssignProfessionals && (
-                          <button 
-                            onClick={() => handleAssignProfessionals(student)}
-                            className="text-primary-600 hover:text-primary-900"
-                          >
-                            {t('assignUsers')}
-                          </button>
-                        )}
-                        {(user?.isAdmin || (student.createdBy && student.createdBy._id === user.id)) && (
-                          <button
-                            onClick={() => handleDeleteStudent(student._id)}
-                            className="text-red-600 hover:text-red-900 ml-4"
-                          >
-                            {t('delete')}
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                       </h3>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-4 text-sm font-semibold text-slate-600">
+                      <span className="flex items-center gap-1 bg-blue-50 text-blue-700 px-3 py-1 rounded-full">
+                        🎂 {new Date(student.dateOfBirth).toLocaleDateString()}
+                      </span>
+                      <span className="flex items-center gap-1 bg-pink-50 text-pink-700 px-3 py-1 rounded-full">
+                        🧑‍🏫 {student.assignedUsers?.length || 0} {t('professionals')}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-wrap items-center gap-2 mt-4 sm:mt-0">
+                    <button
+                      onClick={() => handleViewDetails(student)}
+                      className="btn-secondary whitespace-nowrap"
+                    >
+                      👁️ {t('viewDetails')}
+                    </button>
+                    {canAssignProfessionals && (
+                      <button
+                        onClick={() => handleAssignProfessionals(student)}
+                        className="btn-teal whitespace-nowrap"
+                      >
+                        🤝 {t('assignUsers')}
+                      </button>
+                    )}
+                    {(user?.isAdmin || (student.createdBy && student.createdBy._id === user.id)) && (
+                      <button
+                        onClick={() => handleDeleteStudent(student._id)}
+                        className="bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 px-4 py-2 font-bold rounded-full transition-colors whitespace-nowrap"
+                      >
+                        🗑️ {t('delete')}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -567,7 +559,7 @@ export default function StudentsPage() {
                   {showUnassignedStudents ? t('hideUnassignedStudents') : t('showUnassignedStudents')}
                 </button>
               </div>
-              
+
               <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
                 <p className="text-sm text-blue-800">
                   <strong>{t('note')}:</strong> {t('unassignedStudentsNotice')}
@@ -586,60 +578,39 @@ export default function StudentsPage() {
                       <p className="text-gray-600">{t('noUnassignedStudentsFound')}</p>
                     </div>
                   ) : (
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              {t('name')}
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              {t('dateOfBirth')}
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              {t('created')}
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              {t('actions')}
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {unassignedStudents.map((student) => (
-                            <tr key={student._id}>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm font-medium text-gray-900">
-                                  {student.name}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-gray-900">
-                                  {new Date(student.dateOfBirth).toLocaleDateString()}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-gray-900">
-                                  {new Date(student.createdAt).toLocaleDateString()}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button 
-                                  onClick={() => handleClaimStudent(student._id)}
-                                  className="text-green-600 hover:text-green-900 mr-4"
-                                >
-                                  {t('claimStudent')}
-                                </button>
-                                <button 
-                                  onClick={() => handleViewDetails(student)}
-                                  className="text-primary-600 hover:text-primary-900"
-                                >
-                                  {t('viewDetails')}
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                    <div className="flex flex-col gap-4 mt-6">
+                      {unassignedStudents.map((student) => (
+                        <div key={student._id} className="unia-table-row">
+                          <div className="flex-1">
+                            <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2 mb-2">
+                              {student.name}
+                            </h3>
+                            <div className="flex flex-wrap items-center gap-4 text-sm font-semibold text-slate-600">
+                              <span className="flex items-center gap-1 bg-blue-50 text-blue-700 px-3 py-1 rounded-full">
+                                🎂 {new Date(student.dateOfBirth).toLocaleDateString()}
+                              </span>
+                              <span className="flex items-center gap-1 bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full">
+                                📅 {t('created')}: {new Date(student.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="flex flex-wrap items-center gap-2 mt-4 sm:mt-0">
+                            <button
+                              onClick={() => handleClaimStudent(student._id)}
+                              className="btn-primary whitespace-nowrap"
+                            >
+                              ✨ {t('claimStudent')}
+                            </button>
+                            <button
+                              onClick={() => handleViewDetails(student)}
+                              className="btn-secondary whitespace-nowrap"
+                            >
+                              👁️ {t('viewDetails')}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </>
@@ -688,7 +659,7 @@ export default function StudentsPage() {
                   </p>
                 </div>
                 {/* Show ministry code to the creator or admin */}
-                {selectedStudent.ministryCode && 
+                {selectedStudent.ministryCode &&
                   (user?.isAdmin || (selectedStudent.createdBy && selectedStudent.createdBy._id === user.id)) && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700">{t('ministryCode')}</label>
@@ -725,7 +696,7 @@ export default function StudentsPage() {
               <h3 className="text-lg font-medium text-gray-900 mb-4">
                 {t('assignUsersTo', { name: selectedStudent.name })}
               </h3>
-              
+
               {loadingProfessionals ? (
                 <div className="text-center py-4">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mx-auto"></div>
@@ -752,7 +723,7 @@ export default function StudentsPage() {
                   ))}
                 </div>
               )}
-              
+
               <div className="mt-6 flex space-x-3">
                 <button
                   onClick={handleSubmitAssignment}

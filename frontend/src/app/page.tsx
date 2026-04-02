@@ -17,26 +17,15 @@ const WavyDivider = ({ color = "text-amber-100" }) => (
 
 // --- Advanced Interactive Mascot with Fun & Professional Appeal ---
 const AnimatedMascot = () => (
-  <div className="fixed bottom-6 right-6 z-50">
-    <div className="relative group cursor-pointer">
-      {/* Main Mascot */}
-      <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center text-3xl shadow-2xl border-4 border-white/30 backdrop-blur-sm transition-all duration-500 group-hover:scale-110 group-hover:rotate-12 group-hover:shadow-indigo-500/40">
-        🦋
-      </div>
-      
-      {/* Fun Interactive Elements */}
-      <div className="absolute -top-3 -right-3 bg-gradient-to-r from-yellow-400 to-orange-400 text-slate-800 text-xs px-3 py-1.5 rounded-full font-bold animate-bounce shadow-lg border-2 border-white">
-        Hi! 👋
-      </div>
-      
-      {/* Advanced Animation Effects */}
-      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-indigo-500/30 to-purple-600/30 animate-ping opacity-75"></div>
-      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-500/20 to-yellow-400/20 animate-pulse"></div>
-      
-      {/* Fun Sparkles */}
-      <div className="absolute -top-1 -left-1 w-3 h-3 bg-yellow-300 rounded-full animate-sparkle"></div>
-      <div className="absolute top-1 -right-1 w-2 h-2 bg-pink-300 rounded-full animate-sparkle" style={{ animationDelay: '0.5s' }}></div>
-      <div className="absolute bottom-1 -left-1 w-2.5 h-2.5 bg-blue-300 rounded-full animate-sparkle" style={{ animationDelay: '1s' }}></div>
+  <div className="fixed bottom-8 right-8 z-50 flex items-end gap-3 pointer-events-none">
+    {/* Chat Bubble */}
+    <div className="bg-white px-5 py-3 rounded-2xl rounded-br-none shadow-unia-card-hover border border-white/50 animate-bounce pointer-events-auto">
+      <span className="text-gray-800 font-bold text-lg">Hi! 👋</span>
+    </div>
+    
+    {/* Mascot */}
+    <div className="w-16 h-16 bg-unia-purple-light rounded-full flex items-center justify-center text-3xl shadow-unia-card border-2 border-white overflow-hidden pointer-events-auto cursor-pointer hover:scale-110 transition-transform">
+      🦋
     </div>
   </div>
 );
@@ -72,31 +61,31 @@ const LearningEnvironmentSection = () => (
 );
 
 const Header = () => (
-  <header className="sticky top-0 bg-white/95 backdrop-blur-lg border-b-2 border-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 z-50 shadow-xl">
-    <div className="container mx-auto flex justify-between items-center p-6">
-      <Link href="/" className="flex items-center space-x-4 group">
-        <div className="relative">
-          <img src="/L.jpg" alt="UNIA Logo" className="w-16 h-16 rounded-full group-hover:scale-110 transition-transform duration-300 shadow-xl border-2 border-indigo-200" />
-          <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-pulse shadow-lg border-2 border-white"></div>
-          {/* Fun Sparkle Effect */}
-          <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-pink-300 rounded-full animate-sparkle"></div>
-        </div>
-        <div>
-          <span className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 group-hover:from-indigo-700 group-hover:via-purple-700 group-hover:to-pink-700 transition-all duration-300">
+  <header className="sticky top-0 bg-white/60 backdrop-blur-md rounded-b-[2rem] mx-4 mt-2 z-50 shadow-sm border border-white/50 border-t-0 p-4 px-6 flex justify-between items-center transition-all">
+    <Link href="/" className="flex items-center space-x-3 group">
+      <div className="relative flex items-center justify-center w-12 h-12 bg-unia-purple-light rounded-2xl shadow-sm border border-white transform group-hover:-rotate-6 transition-transform">
+        <span className="text-2xl">🦋</span>
+      </div>
+      <div>
+        <div className="flex items-center gap-2">
+          <span className="text-3xl font-black text-transparent bg-clip-text bg-unia-gradient-primary tracking-tight">
             UNIA
           </span>
-          <p className="text-sm text-slate-500 -mt-1 font-semibold">🌟 Autism Support Platform 🌟</p>
+          <span className="text-2xl animate-spin-slow">☀️</span>
         </div>
+        <p className="text-xs text-slate-800 font-semibold -mt-1 tracking-wide">
+          Autism Support Platform
+        </p>
+      </div>
+    </Link>
+    <nav className="flex items-center space-x-6">
+      <Link href="/auth/login" className="flex items-center gap-2 text-slate-800 font-bold hover:text-unia-purple transition-colors">
+        <span className="text-xl">🔑</span> Sign In
       </Link>
-      <nav className="flex items-center space-x-6">
-        <Link href="/auth/login" className="px-6 py-3 text-base font-bold text-slate-600 hover:text-indigo-600 transition-colors hover:scale-105 group">
-          <span className="group-hover:animate-bounce">🔑</span> Sign In
-        </Link>
-        <Link href="/auth/register" className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white px-8 py-3 rounded-full font-bold transition-all hover:scale-105 shadow-xl hover:shadow-2xl hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 border-2 border-white/20 group">
-          <span className="group-hover:animate-bounce">🚀</span> Get Started
-        </Link>
-      </nav>
-    </div>
+      <Link href="/auth/register" className="btn-primary shadow-unia-card-hover group flex items-center gap-2 px-6 py-2.5">
+        <span className="text-xl group-hover:animate-bounce">🚀</span> Get Started
+      </Link>
+    </nav>
   </header>
 );
 
@@ -131,36 +120,39 @@ const AnimatedBackground = () => {
 };
 
 const HeroSection = () => (
-  <section className="relative bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 pt-20 pb-24 text-center overflow-hidden">
-    <div className="container mx-auto px-4 z-10 relative">
-      <div className="mb-8">
-        <div className="inline-block animate-bounce">
-          <span className="text-7xl">🎉</span>
-        </div>
-      </div>
-      <h1 className="text-6xl sm:text-7xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 mb-8 leading-tight">
-        Welcome to Your
-        <span className="block bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 bg-clip-text text-transparent">
-          Learning Adventure!
-        </span>
+  <section className="relative pt-24 pb-32 text-center overflow-hidden flex flex-col items-center justify-center min-h-[80vh]">
+    {/* Rainbow Arch Background Approximation via SVGs/Gradients */}
+    <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10 flex justify-center items-start opacity-70">
+      <div className="w-[150%] h-[800px] border-[40px] border-unia-purple-light/50 rounded-[100%] absolute -top-[400px]"></div>
+      <div className="w-[130%] h-[700px] border-[40px] border-pink-100/50 rounded-[100%] absolute -top-[300px]"></div>
+      <div className="w-[110%] h-[600px] border-[40px] border-orange-50/80 rounded-[100%] absolute -top-[200px]"></div>
+    </div>
+    
+    <div className="container mx-auto px-4 z-10 relative max-w-5xl">
+      <h1 className="text-5xl sm:text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-unia-purple via-unia-pink to-unia-orange mb-6 leading-tight drop-shadow-sm tracking-tight">
+        Welcome to Your Learning Adventure!
       </h1>
-      <p className="text-2xl sm:text-3xl text-slate-600 max-w-5xl mx-auto mb-12 leading-relaxed">
-        A <span className="font-bold text-indigo-600">magical place</span> where amazing specialists work together to help you learn, grow, and shine! 
-        <span className="block mt-3 text-xl font-semibold text-purple-600">✨ Explore fun activities, play games, and discover your superpowers! ✨</span>
+      
+      <p className="text-2xl sm:text-3xl text-slate-900 font-extrabold mx-auto mb-8 leading-snug tracking-tight">
+        A magical place where amazing specialists work together to help you learn, grow, and shine!
       </p>
+      
+      <p className="text-xl sm:text-2xl text-slate-700 mb-12 font-medium">
+        Explore fun activities, play games, and discover your superpowers! ✨
+      </p>
+      
       <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-        <Link href="/auth/register" className="group bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white text-2xl px-14 py-6 rounded-full font-black transition-all hover:scale-110 shadow-2xl hover:shadow-indigo-500/25 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 border-2 border-white/20">
-          <span className="group-hover:animate-bounce">🚀</span> Start Your Adventure!
+        <Link href="/auth/register" className="btn-primary text-xl px-8 py-4 shadow-unia-card-hover group flex items-center gap-3">
+          <span className="text-2xl group-hover:animate-bounce">🚀</span> Start Your Adventure!
         </Link>
-        <Link href="/news-feed" className="group bg-gradient-to-r from-green-500 via-teal-500 to-blue-500 text-white text-2xl px-14 py-6 rounded-full font-black transition-all hover:scale-110 shadow-2xl hover:shadow-green-500/25 hover:from-green-600 hover:via-teal-600 hover:to-blue-600 border-2 border-white/20">
-          <span className="group-hover:animate-bounce">📰</span> Explore Community!
+        <Link href="/dashboard" className="btn-teal text-xl px-8 py-4 shadow-unia-card-hover group flex items-center gap-3">
+          <span className="text-2xl group-hover:animate-bounce">📰</span> Explore Community!
         </Link>
-        <Link href="/activities" className="group bg-white text-slate-800 text-2xl px-14 py-6 rounded-full font-black transition-all hover:scale-110 shadow-2xl hover:shadow-slate-500/25 border-2 border-slate-200 hover:border-indigo-300">
-          <span className="group-hover:animate-bounce">🎨</span> Explore Activities!
-      </Link>
+        <Link href="/dashboard/activities" className="btn-secondary text-xl px-8 py-4 shadow-unia-card-hover group flex items-center gap-3">
+          <span className="text-2xl group-hover:rotate-12 transition-transform">🎨</span> Explore Activities!
+        </Link>
       </div>
     </div>
-    <WavyDivider color="text-white" />
   </section>
 );
 
